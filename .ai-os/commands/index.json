@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "last_updated": "2026-07-16",
-  "note": "'version' is this file's own catalog-schema version, tracked independently from registry/index.json's schema version and from manifest.json's ai_os_version \u2014 see registry/index.json's note for why they diverge.",
+  "note": "'version' is this file's own catalog-schema version, tracked independently from registry/index.json's schema version and from manifest.json's ai_os_version — see registry/index.json's note for why they diverge.",
   "system_commands": [
     {
       "name": "HELP",
@@ -42,19 +42,19 @@
     {
       "name": "WRAP",
       "type": "built-in",
-      "description": "Pause the session without promoting anything. Writes the session summary to sessions.jsonl and overwrites last_session.json so the next boot has continuity \u2014 that's it. Does not touch task memory, does not run the verify/accept gate, does not write to semantic memory, does not rotate decisions.jsonl. Use this for 'taking a break' / 'stopping for now' \u2014 use MEMORY_CONSOLIDATE or TASK_CLOSE when the work is actually confirmed and ready to promote.",
+      "description": "Pause the session without promoting anything. Writes the session summary to sessions.jsonl and overwrites last_session.json so the next boot has continuity — that's it. Does not touch task memory, does not run the verify/accept gate, does not write to semantic memory, does not rotate decisions.jsonl. Use this for 'taking a break' / 'stopping for now' — use MEMORY_CONSOLIDATE or TASK_CLOSE when the work is actually confirmed and ready to promote.",
       "usage": "> OS_COMMAND WRAP"
     },
     {
       "name": "MEMORY_CONSOLIDATE",
       "type": "built-in",
-      "description": "Deliberate promotion pass \u2014 invoke this when the work is actually confirmed and ready, not just when you're pausing (see WRAP for that). Extract rules from decisions/episodic logs to semantic memory (verify-before-promote, diff-before-delete, dedup \u2014 see core.memory.sk), then archive processed decisions.jsonl entries to decisions.archive.jsonl and sweep tasks/ for orphaned files whose branch no longer exists. On a feature/ticket branch, excludes the active task file entirely (untouched until TASK_CLOSE). On a protected branch (main/master/develop/release), the task file there is rolling working memory, not a ticket file \u2014 apply the same verify/accept gate as TASK_CLOSE to its contents, promote what qualifies, then clear it (don't archive it as if a ticket finished). Also writes the session summary to sessions.jsonl and overwrites last_session.json.",
+      "description": "Deliberate promotion pass — invoke this when the work is actually confirmed and ready, not just when you're pausing (see WRAP for that). Extract rules from decisions/episodic logs to semantic memory (verify-before-promote, diff-before-delete, dedup — see core.memory.sk), then archive processed decisions.jsonl entries to decisions.archive.jsonl and sweep tasks/ for orphaned files whose branch no longer exists. On a feature/ticket branch, excludes the active task file entirely (untouched until TASK_CLOSE). On a protected branch (main/master/develop/release), the task file there is rolling working memory, not a ticket file — apply the same verify/accept gate as TASK_CLOSE to its contents, promote what qualifies, then clear it (don't archive it as if a ticket finished). Also writes the session summary to sessions.jsonl and overwrites last_session.json.",
       "usage": "> OS_COMMAND MEMORY_CONSOLIDATE"
     },
     {
       "name": "TASK_CLOSE",
       "type": "built-in",
-      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, sanitized per BOOT.md \u00a72), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
+      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, sanitized per BOOT.md §2), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
       "usage": "> OS_COMMAND TASK_CLOSE [branch]"
     }
   ],
@@ -114,7 +114,7 @@
     {
       "name": "SECURITY_LOCKDOWN",
       "skill": "core.security.sk",
-      "description": "Emergency freeze \u2014 halt all autonomous operations",
+      "description": "Emergency freeze — halt all autonomous operations",
       "parameters": {
         "reason": {
           "type": "string"
@@ -356,7 +356,7 @@
     {
       "name": "TEST_IMPACT",
       "skill": "core.testing.sk",
-      "description": "Test impact analysis \u2014 determine which tests need to run",
+      "description": "Test impact analysis — determine which tests need to run",
       "parameters": {
         "changed": {
           "type": "string",
@@ -743,7 +743,7 @@
     {
       "name": "DEV_IMPLEMENT_REVIEWED",
       "skill": "core.dev-loop.sk",
-      "description": "Implement a task with independent subagent review where the host supports it, honestly-labeled same-agent fallback otherwise. BOOT.md \u00a74 routes a plan-less 'implement this feature/endpoint/function' request here by default (EP-67); its Review Pass sub-procedure is also invoked standalone by PLAN_EXECUTE (once per flat plan, once per epic story)",
+      "description": "Implement a task with independent subagent review where the host supports it, honestly-labeled same-agent fallback otherwise. BOOT.md §4 routes a plan-less 'implement this feature/endpoint/function' request here by default (EP-67); its Review Pass sub-procedure is also invoked standalone by PLAN_EXECUTE (once per flat plan, once per epic story)",
       "parameters": {
         "task": {
           "type": "string",

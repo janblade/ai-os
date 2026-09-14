@@ -1,4 +1,3 @@
-# Evolution Proposals & Applied Changes
+# Evolution Proposals
 
-> This file logs every `EVOLVE_PROPOSE`/`EVOLVE_APPLY` cycle for this project. Empty on a
-> fresh install — proposals accumulate here as the project evolves.
+> No evolutions logged yet in this project.
