@@ -1,0 +1,19 @@
+{
+  "id": "critical",
+  "name": "Critical Infrastructure",
+  "governance": {
+    "security_scans": "continuous-with-audit",
+    "human_approval": "all-changes",
+    "evolution_speed": "locked-down",
+    "observability": "full-trace-with-external-audit",
+    "dependency_policy": "audited-allowlist-with-verification",
+    "max_autonomous_steps": 5,
+    "code_review": "all-changes-with-sign-off",
+    "risk_assessment": "blocking-with-documentation"
+  },
+  "rule_overrides": {
+    "R5": "threshold-halved",
+    "R15": "all-actions"
+  },
+  "description": "Maximum safety for financial, medical, or infrastructure systems. Human approval required for every change. Extensive audit trail. Agent autonomy is severely restricted — it primarily operates as an advisor and reviewer rather than an executor."
+}

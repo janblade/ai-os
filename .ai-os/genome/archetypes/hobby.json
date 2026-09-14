@@ -1,0 +1,27 @@
+{
+  "id": "hobby",
+  "name": "Hobby / Learning",
+  "governance": {
+    "security_scans": "on-demand",
+    "human_approval": "never",
+    "evolution_speed": "auto-approve-all",
+    "observability": "minimal",
+    "dependency_policy": "warn-on-vuln",
+    "max_autonomous_steps": 50,
+    "code_review": "none",
+    "risk_assessment": "skip"
+  },
+  "rule_overrides": {
+    "R2": "advisory-best-effort",
+    "R5": "disabled",
+    "R7": "warning",
+    "R8": "disabled",
+    "R10": "disabled",
+    "R13": "warning",
+    "R14": "disabled",
+    "R15": "disabled",
+    "R17": "warning",
+    "R18": "disabled"
+  },
+  "description": "Minimal friction for personal projects and learning. Security scans are available but not mandatory for every change. The agent has maximum autonomy to move fast."
+}

@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "description": "User-defined command shortcuts.",
+  "aliases": {
+    "audit": "SECURITY_AUDIT --depth=all",
+    "scan": "SECURITY_SCAN_FILE",
+    "fix": "HEAL_DIAGNOSE --auto-repair",
+    "status": "STATUS",
+    "test": "TEST_RUN",
+    "plan": "ARCHITECT_PLAN",
+    "feature": "PLAN_BRAINSTORM",
+    "retro": "PLAN_RETRO",
+    "discover": "INFRA_DISCOVER_MODULES",
+    "wrap": "WRAP",
+    "consolidate": "MEMORY_CONSOLIDATE",
+    "close": "TASK_CLOSE",
+    "propose": "EVOLVE_PROPOSE",
+    "apply": "EVOLVE_APPLY",
+    "repair": "HEAL_REPAIR",
+    "absorb_history": "INFRA_ANALYZE_COMMITS --mode=merges-only --count=10",
+    "absorb": "INFRA_ANALYZE_COMMITS --mode=merges-only --count=10",
+    "trace": "INFRA_MAP_DATAFLOW",
+    "amend": "MEMORY_AMEND",
+    "simplify": "SIMPLIFY_REVIEW",
+    "bloat": "SIMPLIFY_AUDIT",
+    "overengineered": "SIMPLIFY_AUDIT",
+    "debt": "DEBT_LEDGER"
+  }
+}

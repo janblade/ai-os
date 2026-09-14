@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "workflows": [],
+  "schema": {
+    "workflow": {
+      "id": "string — unique identifier",
+      "name": "string — human-readable name",
+      "description": "string — what this workflow accomplishes",
+      "trigger": "string — when to use this workflow",
+      "steps": [
+        {
+          "order": "number",
+          "action": "string — what to do",
+          "tool": "string — which skill/command to use",
+          "parameters": "object — input parameters",
+          "success_criteria": "string — how to verify this step worked",
+          "fallback": "string — what to do if this step fails"
+        }
+      ],
+      "learned_from": "string — session or context where this was learned",
+      "success_count": "number — how many times this workflow has been successfully executed",
+      "last_used": "string — ISO 8601 timestamp",
+      "pinned": "boolean — reserved for a future forgetting/pruning policy for this file, which does not exist yet (core.memory.sk has none defined) — currently always false, has no effect",
+      "project_only": "boolean — true only for a workflow specific to this repo's own dev process, never meant for a project that installs the framework; absent or false for a normal reusable workflow. INSTALL_PROMPT.md Step 4 strips any project_only:true entry on fresh install (EP-75) — same treatment RELEASE/EVOLVE_BENCHMARK already get as commands"
+    }
+  },
+  "notes": "Written by core.planning.sk's PLAN_EXECUTE step 7 (EP-74), only when a completed plan's step sequence is a genuinely repeatable pattern, not one-off work — offered to the user, never saved silently. Read by PLAN_WRITE step 1 (match on `trigger` before drafting a new plan from scratch, bump `success_count`/`last_used` on reuse)."
+}

@@ -1,0 +1,37 @@
+{
+  "ai_os_version": "2.8.0",
+  "project_name": "",
+  "project_archetype": "auto",
+  "security_level": "standard",
+  "evolution_mode": "human-review-critical",
+  "agent_config": {
+    "approval_mode": "high-risk-only",
+    "verbosity": "normal",
+    "max_autonomous_steps": 25,
+    "max_retries_per_action": 3,
+    "_status": "max_autonomous_steps is the one field with real backing (rules/ultimate_rules.md R16, sourced from genome/archetypes/*.json \u2014 this copy is a secondary, unenforced mirror). approval_mode, verbosity, and max_retries_per_action are declared intent, not currently read by any rule or skill procedure \u2014 treat as reserved/aspirational until something is wired to consult them. security_policy.md's '3 retries' is an independent hardcoded value, not sourced from max_retries_per_action; keep them in sync manually until that changes."
+  },
+  "boot_count": 0,
+  "last_boot": null,
+  "created_at": "2026-07-15T23:20:41+08:00",
+  "installed_skills": [
+    "core.security.sk",
+    "core.infra.sk",
+    "core.testing.sk",
+    "core.evolution.sk",
+    "core.observability.sk",
+    "core.context-engine.sk",
+    "core.self-healing.sk",
+    "core.architect.sk",
+    "core.memory.sk",
+    "core.planning.sk",
+    "core.dev-loop.sk",
+    "core.simplicity.sk"
+  ],
+  "custom_commands": [],
+  "tech_stack": {},
+  "evolution_history": {
+    "total_evolutions": 0,
+    "last_evolution": null
+  }
+}

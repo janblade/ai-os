@@ -1,0 +1,16 @@
+{
+  "id": "enterprise",
+  "name": "Enterprise / Team-Based",
+  "governance": {
+    "security_scans": "pre-commit-and-ci",
+    "human_approval": "all-infrastructure",
+    "evolution_speed": "human-review-all",
+    "observability": "full-trace",
+    "dependency_policy": "allowlist-only",
+    "max_autonomous_steps": 15,
+    "code_review": "all-changes",
+    "risk_assessment": "blocking"
+  },
+  "rule_overrides": {},
+  "description": "Full governance for team-based, compliance-aware projects. All changes are reviewed. Complete audit trail maintained. Dependency additions require allowlist approval."
+}

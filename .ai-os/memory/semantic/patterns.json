@@ -1,0 +1,23 @@
+{
+  "discovered_at": null,
+  "naming_conventions": {
+    "files": null,
+    "functions": null,
+    "variables": null,
+    "classes": null,
+    "components": null,
+    "tests": null
+  },
+  "error_handling_pattern": null,
+  "api_style": null,
+  "test_patterns": {
+    "framework": null,
+    "structure": null,
+    "naming": null
+  },
+  "import_style": null,
+  "code_organization": null,
+  "commit_conventions": null,
+  "documentation_style": null,
+  "notes": "Auto-populated as the agent discovers patterns in the codebase."
+}

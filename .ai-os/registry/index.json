@@ -1,0 +1,221 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-08-31",
+  "note": "Skill health (failures, degraded state) is derived on demand from decisions.jsonl by HEAL_CIRCUIT_STATUS, not tracked as live state here \u2014 an agent cannot reliably keep persistent counters up to date across sessions. 'version' here is this file's own schema/catalog-format version (bump on structural changes to how skills are described), not the framework's ai_os_version in manifest.json \u2014 commands/index.json's 'version' field is the same kind of catalog-schema version, tracked independently per file since the two catalogs' shapes can and do change on different schedules.",
+  "skills": [
+    {
+      "id": "core.security.sk",
+      "name": "Security Audit & Enforcement",
+      "version": "1.0.0",
+      "description": "Vulnerability scanning, dependency auditing, pre-commit security gates, and emergency lockdown.",
+      "entrypoint": "registry/core.security.sk/SKILL.md",
+      "commands": [
+        "SECURITY_AUDIT",
+        "SECURITY_SCAN_FILE",
+        "SECURITY_CHECK_DEPS",
+        "SECURITY_REVIEW_CHANGE",
+        "SECURITY_LOCKDOWN"
+      ],
+      "dependencies": [],
+      "protected": true
+    },
+    {
+      "id": "core.infra.sk",
+      "name": "Infrastructure & Scaffolding",
+      "version": "1.0.0",
+      "description": "Tech stack detection, project scaffolding, CI/CD generation, and health diagnostics.",
+      "entrypoint": "registry/core.infra.sk/SKILL.md",
+      "commands": [
+        "INFRA_DETECT_STACK",
+        "INFRA_SCAFFOLD",
+        "INFRA_SETUP_CI",
+        "INFRA_HEALTH_CHECK",
+        "INFRA_DIAGNOSE",
+        "INFRA_DISCOVER_MODULES",
+        "INFRA_SHOW_ENV",
+        "INFRA_SWITCH_ENV",
+        "INFRA_ANALYZE_COMMITS",
+        "INFRA_MAP_DATAFLOW",
+        "INFRA_WORKTREE_START",
+        "INFRA_WORKTREE_FINISH"
+      ],
+      "dependencies": [],
+      "protected": false
+    },
+    {
+      "id": "core.testing.sk",
+      "name": "Testing & Validation",
+      "version": "1.0.0",
+      "description": "Test execution, coverage analysis, AI-assisted test generation, and impact analysis.",
+      "entrypoint": "registry/core.testing.sk/SKILL.md",
+      "commands": [
+        "TEST_RUN",
+        "TEST_COVERAGE",
+        "TEST_GENERATE",
+        "TEST_REGRESSION",
+        "TEST_IMPACT"
+      ],
+      "dependencies": [],
+      "protected": false
+    },
+    {
+      "id": "core.evolution.sk",
+      "name": "Self-Evolution Engine",
+      "version": "1.0.0",
+      "description": "PDCA-based self-improvement lifecycle - propose, apply, verify, and rollback system evolutions.",
+      "entrypoint": "registry/core.evolution.sk/SKILL.md",
+      "commands": [
+        "EVOLVE_PROPOSE",
+        "EVOLVE_APPLY",
+        "EVOLVE_ROLLBACK",
+        "EVOLVE_STATUS",
+        "EVOLVE_DIFF"
+      ],
+      "dependencies": [
+        "core.observability.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.observability.sk",
+      "name": "Observability & Audit Trail",
+      "version": "1.0.0",
+      "description": "Decision logging, action tracing, session export, and health reporting.",
+      "entrypoint": "registry/core.observability.sk/SKILL.md",
+      "commands": [
+        "LOG_DECISION",
+        "LOG_ACTION",
+        "TRACE_SESSION",
+        "REPORT_PROGRESS",
+        "REPORT_HEALTH"
+      ],
+      "dependencies": [],
+      "protected": false
+    },
+    {
+      "id": "core.context-engine.sk",
+      "name": "Context Engineering Engine",
+      "version": "1.0.0",
+      "description": "Guidance for intelligent context assembly, relevance scoring, and pruning what you actively choose to read.",
+      "entrypoint": "registry/core.context-engine.sk/SKILL.md",
+      "commands": [
+        "CONTEXT_LOAD",
+        "CONTEXT_SCORE",
+        "CONTEXT_BUDGET",
+        "CONTEXT_PRUNE"
+      ],
+      "dependencies": [],
+      "protected": false
+    },
+    {
+      "id": "core.memory.sk",
+      "name": "Memory Lifecycle",
+      "version": "1.0.0",
+      "description": "Backs TASK_CLOSE and MEMORY_CONSOLIDATE: verify-before-promote, diff-before-delete, dedup, branch-name sanitization, orphan sweep, and archive pruning for the task -> archived -> semantic pipeline.",
+      "entrypoint": "registry/core.memory.sk/SKILL.md",
+      "commands": [
+        "MEMORY_AMEND"
+      ],
+      "backs_builtin_commands": [
+        "TASK_CLOSE",
+        "MEMORY_CONSOLIDATE"
+      ],
+      "note": "commands lists this skill's own skill_commands; backs_builtin_commands lists built-ins (see commands/index.json's system_commands) whose procedure this skill defines but doesn't own the entry for \u2014 kept separate so registry/commands consistency checks don't flag them as drift.",
+      "dependencies": [
+        "core.observability.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.self-healing.sk",
+      "name": "Self-Healing & Resilience",
+      "version": "1.0.0",
+      "description": "Loop detection, failure classification, auto-repair, and emergency protocols.",
+      "entrypoint": "registry/core.self-healing.sk/SKILL.md",
+      "commands": [
+        "HEAL_DIAGNOSE",
+        "HEAL_REPAIR",
+        "HEAL_ROLLBACK",
+        "HEAL_CIRCUIT_STATUS",
+        "REVIEW_CREDIBILITY"
+      ],
+      "dependencies": [
+        "core.observability.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.architect.sk",
+      "name": "Architect - Idea to Project",
+      "version": "1.0.0",
+      "description": "Transforms a raw idea into a fully planned and scaffolded project through structured interview, architecture design, and automated scaffolding.",
+      "entrypoint": "registry/core.architect.sk/SKILL.md",
+      "commands": [
+        "ARCHITECT_PLAN"
+      ],
+      "dependencies": [
+        "core.infra.sk",
+        "core.security.sk",
+        "core.observability.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.planning.sk",
+      "name": "Planning - Brainstorm, Write, Execute",
+      "version": "1.0.0",
+      "description": "Per-feature brainstorm -> write-plan -> execute cycle for work inside an existing project, distinct from architect.sk's greenfield-only scope.",
+      "entrypoint": "registry/core.planning.sk/SKILL.md",
+      "commands": [
+        "PLAN_BRAINSTORM",
+        "PLAN_WRITE",
+        "PLAN_EXECUTE",
+        "PLAN_RETRO"
+      ],
+      "dependencies": [
+        "core.observability.sk",
+        "core.testing.sk",
+        "core.self-healing.sk",
+        "core.memory.sk",
+        "core.dev-loop.sk",
+        "core.simplicity.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.simplicity.sk",
+      "name": "Simplicity - Complexity Governance",
+      "version": "1.0.0",
+      "description": "Pre-mutation simplicity ladder, deliberate-shortcut marker convention (AIOS-DEBT:), and over-engineering-scoped review/audit passes. Covers the gap R22 leaves: R22 forbids bundling unrequested refactors, nothing gates the requested work itself on necessity.",
+      "entrypoint": "registry/core.simplicity.sk/SKILL.md",
+      "commands": [
+        "SIMPLIFY_REVIEW",
+        "SIMPLIFY_AUDIT",
+        "DEBT_LEDGER"
+      ],
+      "dependencies": [
+        "core.security.sk",
+        "core.testing.sk",
+        "core.self-healing.sk",
+        "core.observability.sk"
+      ],
+      "protected": false
+    },
+    {
+      "id": "core.dev-loop.sk",
+      "name": "Dev Loop - Implementation with Peer Review",
+      "version": "1.0.0",
+      "description": "Implementation with independent peer review when the host supports subagent dispatch; honestly-labeled same-agent fallback when it doesn't.",
+      "entrypoint": "registry/core.dev-loop.sk/SKILL.md",
+      "commands": [
+        "DEV_IMPLEMENT_REVIEWED"
+      ],
+      "dependencies": [
+        "core.security.sk",
+        "core.self-healing.sk",
+        "core.observability.sk"
+      ],
+      "protected": false
+    }
+  ]
+}

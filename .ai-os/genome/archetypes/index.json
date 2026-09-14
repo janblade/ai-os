@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "description": "Project archetype profiles that tune governance settings proportional to project risk level.",
+  "available_archetypes": [
+    {
+      "id": "hobby",
+      "name": "Hobby / Learning",
+      "description": "Personal or learning projects. Maximum speed, lightweight governance.",
+      "file": "hobby.json"
+    },
+    {
+      "id": "startup",
+      "name": "Startup / Production-Bound",
+      "description": "Building for production but moving fast. Balanced security and velocity.",
+      "file": "startup.json"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise / Team-Based",
+      "description": "Team collaboration, compliance-aware. Full audit trail and review gates.",
+      "file": "enterprise.json"
+    },
+    {
+      "id": "critical",
+      "name": "Critical Infrastructure",
+      "description": "Financial, medical, or infrastructure systems. Maximum safety, minimum autonomy.",
+      "file": "critical.json"
+    }
+  ],
+  "auto_detection_signals": {
+    "hobby_signals": ["no CI/CD", "no license", "single contributor", "no tests"],
+    "startup_signals": ["CI present", "license exists", "some tests", "README with usage"],
+    "enterprise_signals": ["CONTRIBUTING.md", "multiple CI workflows", "code review config", "security policy"],
+    "critical_signals": ["HIPAA/SOC2/PCI references", "compliance directory", "extensive testing", "signed commits"]
+  }
+}

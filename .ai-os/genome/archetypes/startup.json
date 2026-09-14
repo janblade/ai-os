@@ -1,0 +1,20 @@
+{
+  "id": "startup",
+  "name": "Startup / Production-Bound",
+  "governance": {
+    "security_scans": "pre-commit",
+    "human_approval": "destructive-only",
+    "evolution_speed": "auto-approve-skills",
+    "observability": "decision-log",
+    "dependency_policy": "block-known-vulns",
+    "max_autonomous_steps": 25,
+    "code_review": "high-risk-only",
+    "risk_assessment": "warning"
+  },
+  "rule_overrides": {
+    "R7": "warning",
+    "R10": "warning",
+    "R15": "production-deploys-only"
+  },
+  "description": "Balanced governance for production-bound projects. Security scans run before commits. The agent can evolve skills freely but needs approval for deployments and destructive actions."
+}

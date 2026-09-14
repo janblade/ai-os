@@ -1,0 +1,31 @@
+{
+  "detected_at": "2026-07-15T23:56:36+08:00",
+  "scan_version": "1.0.0",
+  "languages": [],
+  "primary_language": null,
+  "frameworks": [],
+  "package_managers": [],
+  "build_tools": [],
+  "ci_cd": [],
+  "architecture_pattern": null,
+  "project_maturity": null,
+  "estimated_complexity": null,
+  "entry_points": [],
+  "test_frameworks": [],
+  "config_files_found": [],
+  "indicators": {
+    "has_readme": false,
+    "has_license": false,
+    "has_contributing": false,
+    "has_changelog": false,
+    "has_ci": false,
+    "has_docker": false,
+    "has_tests": false,
+    "has_linter": false,
+    "has_formatter": false,
+    "has_type_checking": false,
+    "git_initialized": false,
+    "estimated_contributors": 0
+  },
+  "notes": "Not yet detected \u2014 run INFRA_DETECT_STACK or wait for BOOT.md's First-Boot Wizard."
+}

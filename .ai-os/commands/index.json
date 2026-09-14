@@ -1,0 +1,755 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-07-16",
+  "note": "'version' is this file's own catalog-schema version, tracked independently from registry/index.json's schema version and from manifest.json's ai_os_version \u2014 see registry/index.json's note for why they diverge.",
+  "system_commands": [
+    {
+      "name": "HELP",
+      "type": "built-in",
+      "description": "Show all commands or detailed help for a specific command",
+      "usage": "> OS_COMMAND HELP [command_name]"
+    },
+    {
+      "name": "STATUS",
+      "type": "built-in",
+      "description": "System health and memory dashboard",
+      "usage": "> OS_COMMAND STATUS"
+    },
+    {
+      "name": "BOOT",
+      "type": "built-in",
+      "description": "Re-run boot sequence with optional diagnostics",
+      "usage": "> OS_COMMAND BOOT [--verbose]"
+    },
+    {
+      "name": "GENOME",
+      "type": "built-in",
+      "description": "Display detected project genome",
+      "usage": "> OS_COMMAND GENOME"
+    },
+    {
+      "name": "RULES",
+      "type": "built-in",
+      "description": "Show active rules or details of a specific rule",
+      "usage": "> OS_COMMAND RULES [rule_id]"
+    },
+    {
+      "name": "VERSION",
+      "type": "built-in",
+      "description": "Show AI OS version and framework state",
+      "usage": "> OS_COMMAND VERSION"
+    },
+    {
+      "name": "WRAP",
+      "type": "built-in",
+      "description": "Pause the session without promoting anything. Writes the session summary to sessions.jsonl and overwrites last_session.json so the next boot has continuity \u2014 that's it. Does not touch task memory, does not run the verify/accept gate, does not write to semantic memory, does not rotate decisions.jsonl. Use this for 'taking a break' / 'stopping for now' \u2014 use MEMORY_CONSOLIDATE or TASK_CLOSE when the work is actually confirmed and ready to promote.",
+      "usage": "> OS_COMMAND WRAP"
+    },
+    {
+      "name": "MEMORY_CONSOLIDATE",
+      "type": "built-in",
+      "description": "Deliberate promotion pass \u2014 invoke this when the work is actually confirmed and ready, not just when you're pausing (see WRAP for that). Extract rules from decisions/episodic logs to semantic memory (verify-before-promote, diff-before-delete, dedup \u2014 see core.memory.sk), then archive processed decisions.jsonl entries to decisions.archive.jsonl and sweep tasks/ for orphaned files whose branch no longer exists. On a feature/ticket branch, excludes the active task file entirely (untouched until TASK_CLOSE). On a protected branch (main/master/develop/release), the task file there is rolling working memory, not a ticket file \u2014 apply the same verify/accept gate as TASK_CLOSE to its contents, promote what qualifies, then clear it (don't archive it as if a ticket finished). Also writes the session summary to sessions.jsonl and overwrites last_session.json.",
+      "usage": "> OS_COMMAND MEMORY_CONSOLIDATE"
+    },
+    {
+      "name": "TASK_CLOSE",
+      "type": "built-in",
+      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, sanitized per BOOT.md \u00a72), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
+      "usage": "> OS_COMMAND TASK_CLOSE [branch]"
+    }
+  ],
+  "skill_commands": [
+    {
+      "name": "SECURITY_AUDIT",
+      "skill": "core.security.sk",
+      "description": "Full workspace security review",
+      "parameters": {
+        "depth": {
+          "type": "enum",
+          "values": [
+            "quick",
+            "standard",
+            "all"
+          ],
+          "default": "standard"
+        },
+        "scope": {
+          "type": "string",
+          "default": "."
+        }
+      }
+    },
+    {
+      "name": "SECURITY_SCAN_FILE",
+      "skill": "core.security.sk",
+      "description": "Security review on a specific file",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "SECURITY_CHECK_DEPS",
+      "skill": "core.security.sk",
+      "description": "Dependency vulnerability check",
+      "parameters": {
+        "fix": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "SECURITY_REVIEW_CHANGE",
+      "skill": "core.security.sk",
+      "description": "Pre-commit security review of staged changes",
+      "parameters": {
+        "files": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "SECURITY_LOCKDOWN",
+      "skill": "core.security.sk",
+      "description": "Emergency freeze \u2014 halt all autonomous operations",
+      "parameters": {
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_DETECT_STACK",
+      "skill": "core.infra.sk",
+      "description": "Auto-detect the project's tech stack and architecture",
+      "parameters": {
+        "deep": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "INFRA_SCAFFOLD",
+      "skill": "core.infra.sk",
+      "description": "Generate boilerplate project structure",
+      "parameters": {
+        "type": {
+          "type": "string",
+          "required": true
+        },
+        "stack": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_SETUP_CI",
+      "skill": "core.infra.sk",
+      "description": "Generate CI/CD pipeline configuration",
+      "parameters": {
+        "platform": {
+          "type": "string",
+          "required": true
+        },
+        "stages": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_HEALTH_CHECK",
+      "skill": "core.infra.sk",
+      "description": "Quick project health verification",
+      "parameters": {}
+    },
+    {
+      "name": "INFRA_DIAGNOSE",
+      "skill": "core.infra.sk",
+      "description": "Deep project diagnostic",
+      "parameters": {
+        "focus": {
+          "type": "string",
+          "default": "all"
+        }
+      }
+    },
+    {
+      "name": "INFRA_DISCOVER_MODULES",
+      "skill": "core.infra.sk",
+      "description": "Discover codebase modules and scaffold modular skills",
+      "parameters": {
+        "auto-scaffold": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "INFRA_SHOW_ENV",
+      "skill": "core.infra.sk",
+      "description": "Show environment variables and configurations",
+      "parameters": {
+        "file": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_SWITCH_ENV",
+      "skill": "core.infra.sk",
+      "description": "Switch active environment profile",
+      "parameters": {
+        "profile": {
+          "type": "string",
+          "required": true
+        },
+        "target-file": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_ANALYZE_COMMITS",
+      "skill": "core.infra.sk",
+      "description": "Analyze recent Git merge commits or branch history to extract architectural decisions, conventions, and gotchas with temporal reconciliation",
+      "parameters": {
+        "count": {
+          "type": "number",
+          "default": 10
+        },
+        "mode": {
+          "type": "enum",
+          "values": [
+            "merges-only",
+            "all-commits"
+          ],
+          "default": "merges-only"
+        },
+        "supersede-check": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    {
+      "name": "INFRA_MAP_DATAFLOW",
+      "skill": "core.infra.sk",
+      "description": "Trace a data field forward to every place it's read/transformed/emitted (DB, outbound API, queue, file, cache, email), or trace backward from a sink to every input that can reach it -- for bug triage and change-impact analysis. A bare invocation with no field/sink/all is not a full-project scan -- it asks what to trace. Tool-gated (real dataflow tool if configured, else pattern-matching with per-finding confidence labels); does not write to semantic memory on its own, only on explicit confirmation via core.memory.sk's verify/accept gate",
+      "parameters": {
+        "field": {
+          "type": "string"
+        },
+        "sink": {
+          "type": "string"
+        },
+        "all": {
+          "type": "boolean",
+          "default": false
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_WORKTREE_START",
+      "skill": "core.infra.sk",
+      "description": "Create a physically isolated git worktree for a branch",
+      "parameters": {
+        "branch": {
+          "type": "string",
+          "required": true
+        },
+        "base": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "INFRA_WORKTREE_FINISH",
+      "skill": "core.infra.sk",
+      "description": "Remove a worktree once its branch is merged/abandoned",
+      "parameters": {
+        "branch": {
+          "type": "string",
+          "required": true
+        },
+        "force": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "MEMORY_AMEND",
+      "skill": "core.memory.sk",
+      "description": "Correct or retract an existing semantic-memory entry that turned out to be wrong or that caused a bug when followed -- the direction TASK_CLOSE/MEMORY_CONSOLIDATE don't cover, since they only add or supersede, never revisit an entry just because it was wrong. Verifies the claim is actually responsible, then corrects in place (stale fact), relocates to known_gotchas.md (true but harmful advice -- keep the lesson, not the recommendation), or removes outright (diff-before-delete). Same archetype-scaled accept gate as any other semantic-memory write",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "required": true
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "TEST_RUN",
+      "skill": "core.testing.sk",
+      "description": "Execute test suites",
+      "parameters": {
+        "suite": {
+          "type": "string"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "verbose": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "TEST_COVERAGE",
+      "skill": "core.testing.sk",
+      "description": "Generate and analyze coverage reports",
+      "parameters": {
+        "threshold": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "name": "TEST_GENERATE",
+      "skill": "core.testing.sk",
+      "description": "AI-assisted test generation",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "required": true
+        },
+        "style": {
+          "type": "enum",
+          "values": [
+            "unit",
+            "integration"
+          ],
+          "default": "unit"
+        }
+      }
+    },
+    {
+      "name": "TEST_REGRESSION",
+      "skill": "core.testing.sk",
+      "description": "Run regression suite against recent changes",
+      "parameters": {
+        "since": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "TEST_IMPACT",
+      "skill": "core.testing.sk",
+      "description": "Test impact analysis \u2014 determine which tests need to run",
+      "parameters": {
+        "changed": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "EVOLVE_PROPOSE",
+      "skill": "core.evolution.sk",
+      "description": "Propose a system evolution",
+      "parameters": {
+        "type": {
+          "type": "string",
+          "required": true
+        },
+        "target": {
+          "type": "string",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "EVOLVE_APPLY",
+      "skill": "core.evolution.sk",
+      "description": "Apply an approved evolution",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "EVOLVE_ROLLBACK",
+      "skill": "core.evolution.sk",
+      "description": "Revert a previously applied evolution",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "EVOLVE_STATUS",
+      "skill": "core.evolution.sk",
+      "description": "Show evolution history and pending proposals",
+      "parameters": {
+        "filter": {
+          "type": "enum",
+          "values": [
+            "proposed",
+            "applied",
+            "rolled_back",
+            "all"
+          ],
+          "default": "all"
+        }
+      }
+    },
+    {
+      "name": "EVOLVE_DIFF",
+      "skill": "core.evolution.sk",
+      "description": "Show the diff of a specific evolution",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "LOG_DECISION",
+      "skill": "core.observability.sk",
+      "description": "Record architectural decision to episodic memory",
+      "parameters": {
+        "decision": {
+          "type": "string",
+          "required": true
+        },
+        "rationale": {
+          "type": "string",
+          "required": true
+        },
+        "alternatives": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "LOG_ACTION",
+      "skill": "core.observability.sk",
+      "description": "Record a significant action with reasoning trace",
+      "parameters": {
+        "action": {
+          "type": "string",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "required": true
+        },
+        "files": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "TRACE_SESSION",
+      "skill": "core.observability.sk",
+      "description": "Export the full session trace for audit",
+      "parameters": {
+        "session": {
+          "type": "string"
+        },
+        "format": {
+          "type": "enum",
+          "values": [
+            "json",
+            "markdown"
+          ],
+          "default": "markdown"
+        }
+      }
+    },
+    {
+      "name": "REPORT_PROGRESS",
+      "skill": "core.observability.sk",
+      "description": "Generate a progress report from logs",
+      "parameters": {
+        "period": {
+          "type": "enum",
+          "values": [
+            "today",
+            "week",
+            "all"
+          ],
+          "default": "today"
+        }
+      }
+    },
+    {
+      "name": "REPORT_HEALTH",
+      "skill": "core.observability.sk",
+      "description": "System-wide health dashboard",
+      "parameters": {}
+    },
+    {
+      "name": "CONTEXT_LOAD",
+      "skill": "core.context-engine.sk",
+      "description": "Assemble optimal context for a task",
+      "parameters": {
+        "task": {
+          "type": "string",
+          "required": true
+        },
+        "budget": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "name": "CONTEXT_SCORE",
+      "skill": "core.context-engine.sk",
+      "description": "Score file relevance to current task",
+      "parameters": {
+        "task": {
+          "type": "string",
+          "required": true
+        },
+        "files": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "CONTEXT_BUDGET",
+      "skill": "core.context-engine.sk",
+      "description": "Check token budget and recommend what to load or prune",
+      "parameters": {
+        "estimate-file": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "CONTEXT_PRUNE",
+      "skill": "core.context-engine.sk",
+      "description": "Remove low-value context to make room",
+      "parameters": {
+        "aggressive": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "HEAL_DIAGNOSE",
+      "skill": "core.self-healing.sk",
+      "description": "Diagnose system issues",
+      "parameters": {
+        "scope": {
+          "type": "enum",
+          "values": [
+            "framework",
+            "project",
+            "all"
+          ],
+          "default": "all"
+        },
+        "auto-repair": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "HEAL_REPAIR",
+      "skill": "core.self-healing.sk",
+      "description": "Auto-repair detected issues",
+      "parameters": {
+        "issue": {
+          "type": "string"
+        },
+        "all-safe": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "HEAL_ROLLBACK",
+      "skill": "core.self-healing.sk",
+      "description": "Rollback to last known good state",
+      "parameters": {
+        "scope": {
+          "type": "enum",
+          "values": [
+            "last-evolution",
+            "last-session",
+            "full-reset"
+          ],
+          "default": "last-evolution"
+        }
+      }
+    },
+    {
+      "name": "HEAL_CIRCUIT_STATUS",
+      "skill": "core.self-healing.sk",
+      "description": "Circuit breaker dashboard",
+      "parameters": {}
+    },
+    {
+      "name": "REVIEW_CREDIBILITY",
+      "skill": "core.self-healing.sk",
+      "description": "Structured credibility audit of framework and project documentation",
+      "parameters": {
+        "scope": {
+          "type": "enum",
+          "values": [
+            "framework",
+            "project",
+            "all"
+          ],
+          "default": "all"
+        },
+        "fix": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "ARCHITECT_PLAN",
+      "skill": "core.architect.sk",
+      "description": "Interactive interview to plan and scaffold a greenfield feature",
+      "parameters": {
+        "idea": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "PLAN_BRAINSTORM",
+      "skill": "core.planning.sk",
+      "description": "Clarify a feature's scope through small rounds of questions before design/code",
+      "parameters": {
+        "feature": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "PLAN_WRITE",
+      "skill": "core.planning.sk",
+      "description": "Turn a clarified feature into a concrete, ordered implementation plan",
+      "parameters": {
+        "feature": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "PLAN_EXECUTE",
+      "skill": "core.planning.sk",
+      "description": "Work an approved plan step by step, verifying each step before the next",
+      "parameters": {
+        "plan": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "PLAN_RETRO",
+      "skill": "core.planning.sk",
+      "description": "Structured retrospective when an epic plan closes. Reads the epic's story/acceptance-criteria outcomes and its decisions.jsonl span, appends a ## Retro section (delivered vs planned, what worked, what didn't, lessons -> promotion candidates) to the epic plan file. Writes nothing to semantic memory itself -- each lesson routes through core.memory.sk's verify-before-promote gate. Epic-scoped only; flat plans route to normal consolidation",
+      "parameters": {
+        "plan": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "SIMPLIFY_REVIEW",
+      "skill": "core.simplicity.sk",
+      "description": "Review a diff for over-engineering only -- what to delete, what the stdlib or platform already ships, what abstraction has one caller. One line per finding: location, tagged cut (delete/stdlib/native/yagni/shrink/dup), replacement. Correctness bugs, security holes, and doc-accuracy are explicitly out of scope (route to a normal review pass, SECURITY_REVIEW_CHANGE, and REVIEW_CREDIBILITY respectively). Reports findings, applies nothing. Closes with a deletion total counted off the actual lines proposed for removal -- never an invented savings figure for code that was never written (R21/R25)",
+      "parameters": {
+        "target": {
+          "type": "string"
+        },
+        "level": {
+          "type": "enum",
+          "values": [
+            "advisory",
+            "standard",
+            "aggressive"
+          ],
+          "default": "archetype-derived"
+        }
+      }
+    },
+    {
+      "name": "SIMPLIFY_AUDIT",
+      "skill": "core.simplicity.sk",
+      "description": "SIMPLIFY_REVIEW across the whole tree instead of a diff. Same tags, ranked biggest cut first. Read-only: each accepted finding becomes its own change with its own R23 blast-radius assessment -- never batch-applied",
+      "parameters": {
+        "scope": {
+          "type": "string",
+          "default": "."
+        },
+        "level": {
+          "type": "enum",
+          "values": [
+            "advisory",
+            "standard",
+            "aggressive"
+          ],
+          "default": "archetype-derived"
+        }
+      }
+    },
+    {
+      "name": "DEBT_LEDGER",
+      "skill": "core.simplicity.sk",
+      "description": "Harvest every `AIOS-DEBT:` deliberate-shortcut marker in the codebase into one ledger (file:line, what was simplified, its ceiling, its upgrade trigger), so a deferral can't quietly become permanent. Markers naming a ceiling but no upgrade trigger are tagged `no-trigger` -- those are the ones that rot. Reports only unless --write is given",
+      "parameters": {
+        "scope": {
+          "type": "string",
+          "default": "."
+        },
+        "write": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "DEV_IMPLEMENT_REVIEWED",
+      "skill": "core.dev-loop.sk",
+      "description": "Implement a task with independent subagent review where the host supports it, honestly-labeled same-agent fallback otherwise. BOOT.md \u00a74 routes a plan-less 'implement this feature/endpoint/function' request here by default (EP-67); its Review Pass sub-procedure is also invoked standalone by PLAN_EXECUTE (once per flat plan, once per epic story)",
+      "parameters": {
+        "task": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  ]
+}

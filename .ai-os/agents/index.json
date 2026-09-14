@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "description": "Active agent profiles in the workspace. The supervisor agent can spawn these worker agents dynamically to delegate scoped sub-tasks. User-defined external agents found during Local Agent Absorption are auto-registered here.",
+  "active_profiles": [
+    {
+      "agent_id": "supervisor",
+      "name": "OS Supervisor",
+      "description": "Primary orchestrator agent that boots the kernel, manages rules, handles user communication, and delegates work to subagents.",
+      "file": "agents/supervisor.json",
+      "primary": true
+    }
+  ]
+}
