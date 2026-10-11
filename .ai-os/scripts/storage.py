@@ -14,7 +14,7 @@ RUNTIME = ".ai-os/memory/runtime"
 
 
 def canonical_json(value):
-    return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def digest(data):
@@ -26,6 +26,9 @@ def workspace_path(root, name):
     path = Path(name)
     if not name or ".." in path.parts:
         raise ValueError("Expected a workspace path without traversal")
+    if os.name == "nt" and any(":" in part or part.endswith((".", " "))
+                              for part in path.parts if part != path.anchor):
+        raise ValueError("Windows alternate streams and path aliases are not supported")
     path = path if path.is_absolute() else root / path
     resolved = path.resolve()
     if not resolved.is_relative_to(root):
@@ -74,5 +77,8 @@ def memory_lock(root):
 
 
 def git_value(root, *arguments):
-    result = subprocess.run(["git", "-C", str(root), *arguments], capture_output=True, check=False)
+    try:
+        result = subprocess.run(["git", "-C", str(root), *arguments], capture_output=True, check=False)
+    except FileNotFoundError:
+        return None
     return result.stdout.decode("utf-8").strip() if result.returncode == 0 else None

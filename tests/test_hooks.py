@@ -6,15 +6,13 @@ import sys
 import unittest
 from pathlib import Path
 
-from test_context import ContextTests as _ContextTests
+from workspace import Workspace
 from context import create_task
 from hooks import hook, session_pointer
 from storage import RUNTIME, memory_lock
 
 
-class HookTests(unittest.TestCase):
-    setUp = _ContextTests.setUp
-    write = _ContextTests.write
+class HookTests(Workspace):
 
     def body(self, event, **extra):
         return {"hook_event_name": event, "session_id": "test-session", **extra}
@@ -130,6 +128,3 @@ class HookTests(unittest.TestCase):
         result = subprocess.run(command + ["PreToolUse"], input=json.dumps(self.body("PreToolUse", tool_name="Bash", tool_input={})),
                                 text=True, capture_output=True, env=environment)
         self.assertEqual(result.returncode, 2, result.stderr)
-
-
-del _ContextTests

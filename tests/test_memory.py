@@ -1,16 +1,16 @@
 import json
 import sys
+import subprocess
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from test_context import ContextTests as _ContextTests
-from memory import add_entry, encoded, promote, recover, validate_evidence, verify
+from workspace import Workspace
+from memory import add_entry, amend, encoded, promote, recover, validate_evidence, verify
 from storage import RUNTIME, atomic_write, canonical_json, digest
 
 
-class MemoryTests(unittest.TestCase):
-    setUp = _ContextTests.setUp
-    write = _ContextTests.write
+class MemoryTests(Workspace):
 
     def prepare(self):
         task_name = ".ai-os/memory/tasks/example.md"
@@ -97,5 +97,37 @@ class MemoryTests(unittest.TestCase):
         result = verify(self.root, ["src.py"], [sys.executable, "-c", "open('src.py','w').write('new')"])
         self.assertFalse(result["passed"])
 
+    def test_failed_verification_cli_returns_nonzero_with_inspectable_evidence(self):
+        self.write("src.py", "current dependency")
+        cli = Path(__file__).resolve().parents[1] / ".ai-os/scripts/ai_os.py"
+        result = subprocess.run([sys.executable, "-B", str(cli), "--project", str(self.root),
+                                 "verify", "--file", "src.py", "--", sys.executable, "-c", "raise SystemExit(7)"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        record = json.loads(result.stdout)
+        self.assertEqual(record["returncode"], 7)
+        self.assertFalse(record["passed"])
+        self.assertTrue((self.root / record["evidence"]).is_file())
 
-del _ContextTests
+    def test_reviewed_amendment_and_retraction_keep_other_memory(self):
+        self.write("src.py", "value=2")
+        evidence = verify(self.root, ["src.py"], [sys.executable, "-c", "assert open('src.py').read() == 'value=2'"])
+        name = ".ai-os/memory/semantic/knowledge/example.md"
+        destination = self.write(name, "Unrelated knowledge\nValue is 1.\n")
+        self.write("correction.md", "Value is 2.")
+        proposal = {"destination": name, "destination_sha256": digest(destination.read_bytes()),
+                    "accepted": True, "evidence": evidence["evidence"], "old_text": "Value is 1.",
+                    "replacement_file": "correction.md"}
+        self.write("amendment.json", json.dumps(proposal))
+        amend(self.root, "amendment.json")
+        self.assertIn("Unrelated knowledge\nValue is 2.", destination.read_text())
+        with self.assertRaises(ValueError):
+            amend(self.root, "amendment.json")
+        proposal.update(destination_sha256=digest(destination.read_bytes()), old_text="Value is 2.", replacement_file=None)
+        self.write("amendment.json", json.dumps(proposal))
+        amend(self.root, "amendment.json")
+        self.assertNotIn("Value is 2.", destination.read_text())
+        self.assertIn("Unrelated knowledge", destination.read_text())
+        log = self.root / ".ai-os/memory/episodic/decisions.jsonl"
+        for line in log.read_text().splitlines():
+            self.assertEqual(set(json.loads(line)), {"ts", "type", "what", "why", "files"})

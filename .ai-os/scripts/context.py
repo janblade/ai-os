@@ -40,20 +40,24 @@ def current_identity(root):
 
 
 def create_task(root, name):
-    path = task_path(root, name)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if not path.exists():
-        with path.open("x", encoding="utf-8", newline="\n") as stream:
-            stream.write(f"# Task\n\nTask-ID: {task_key(name)}\nBranch: {name}\n\n")
+    with memory_lock(root):
+        if workspace_path(root, RUNTIME + "/transaction.json").exists():
+            raise ValueError("Recover the unfinished transaction first")
+        path = task_path(root, name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.exists():
+            with path.open("x", encoding="utf-8", newline="\n") as stream:
+                stream.write(f"# Task\n\nTask-ID: {task_key(name)}\nBranch: {name}\n\n")
     return path
 
 
 def context_item(root, name, reason, kind="data"):
     path = workspace_path(root, name)
     relative = path.relative_to(root).as_posix()
-    if (path.name in PRIVATE_NAMES or path.name.startswith(".env.")
-            or path.suffix.lower() in {".pem", ".key"} or ".git" in path.parts
-            or ".aws" in path.parts or relative.startswith(RUNTIME + "/")):
+    parts = {part.casefold() for part in path.parts}
+    if (path.name.casefold() in PRIVATE_NAMES or path.name.casefold().startswith(".env.")
+            or path.suffix.lower() in {".pem", ".key"} or ".git" in parts
+            or ".aws" in parts or relative.casefold().startswith(RUNTIME + "/")):
         raise ValueError("Private files and runtime state cannot be selected as context sources")
     raw = path.read_bytes()
     return {"id": relative, "source": relative, "sha256": digest(raw),
@@ -148,6 +152,9 @@ def save_snapshot(root, pack):
 
 
 def load_snapshot(path):
+    raw = Path(path).read_bytes()
+    if Path(path).name != digest(raw) + ".json":
+        raise ValueError("Context snapshot filename hash mismatch")
     return validate_pack(read_json(path))
 
 
@@ -158,6 +165,7 @@ def diff_packs(before, after):
     new = {item["id"]: item for item in after["items"]}
     return {"added": [key for key in new if key not in old],
             "removed": [key for key in old if key not in new],
+            "metadata_changed": [key for key in ("framework_version", "task") if before.get(key) != after.get(key)],
             "changed": [{"id": key, "fields": sorted(field for field in new[key]
                         if old[key].get(field) != new[key][field])}
                         for key in new if key in old and old[key] != new[key]]}

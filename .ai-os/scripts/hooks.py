@@ -22,7 +22,7 @@ def check_edit(root, tool, data):
             raise ValueError("Patch has no supported file operations")
         for name in paths:
             path = workspace_path(root, name.strip())
-            relative = path.relative_to(root).as_posix()
+            relative = path.relative_to(root).as_posix().casefold()
             if relative.startswith((".ai-os/memory/semantic/", RUNTIME + "/")):
                 raise ValueError("Memory and runtime patches require the reviewed memory CLI")
             # shortcut: protect whole tasks containing identified notes; add surgical patch support when needed.
@@ -35,7 +35,7 @@ def check_edit(root, tool, data):
     if not isinstance(name, str) or not name:
         raise ValueError("File mutation needs a workspace path")
     path = workspace_path(root, name)
-    relative = path.relative_to(root).as_posix()
+    relative = path.relative_to(root).as_posix().casefold()
     if relative.startswith(".ai-os/memory/semantic/"):
         raise ValueError("Semantic writes require reviewed promote proposals; use the memory CLI")
     if relative.startswith(RUNTIME + "/"):
@@ -94,10 +94,11 @@ def hook(root, event, body):
             return {}  # Ordinary tool calls do not repeat governance or unchanged task text.
         changed = set(delta["added"]) | {entry["id"] for entry in delta["changed"]}
         message = "AI-OS context update supersedes prior versions of these items. "
-        message += canonical_json({"task": pack["task"], "removed": delta["removed"]}).decode("ascii")
+        message += canonical_json({"task": pack["task"], "framework_version": pack["framework_version"],
+                                   "removed": delta["removed"]}).decode("utf-8")
         for item in pack["items"]:
             if item["id"] in changed:
-                message += "\n" + canonical_json(item).decode("ascii")
+                message += "\n" + canonical_json(item).decode("utf-8")
         snapshot = save_snapshot(root, pack)
         atomic_write(pointer, canonical_json({"snapshot": snapshot.relative_to(root).as_posix()}))
         return {"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}}

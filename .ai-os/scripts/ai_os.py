@@ -8,8 +8,9 @@ from pathlib import Path
 
 from context import build_pack, create_task, diff_packs, load_snapshot, render_pack, save_snapshot, task_path
 from storage import canonical_json, workspace_path
-from memory import add_entry, promote, recover, verify
+from memory import add_entry, amend, promote, recover, verify
 from hooks import hook
+from installation import install_hooks
 
 
 def parser():
@@ -38,10 +39,15 @@ def parser():
     entry.add_argument("--file", required=True)
     promotion = commands.add_parser("promote", help="Apply a reviewed selective promotion proposal")
     promotion.add_argument("proposal")
+    amendment = commands.add_parser("amend", help="Apply a reviewed semantic correction or retraction")
+    amendment.add_argument("proposal")
     commands.add_parser("recover", help="Recover an interrupted memory transaction")
     host_hook = commands.add_parser("hook", help="Process host hook input on stdin")
     host_hook.add_argument("event", choices=["SessionStart", "SubagentStart", "PreToolUse", "Stop"])
     host_hook.add_argument("--host", choices=["claude", "codex"], default="claude")
+    installation = commands.add_parser("install-hooks", help="Merge reviewed AI-OS hooks without replacing unrelated settings")
+    installation.add_argument("--host", choices=["claude", "codex"], required=True)
+    installation.add_argument("--template", type=Path, required=True)
     return result
 
 
@@ -54,6 +60,8 @@ def run(arguments):
             raise ValueError("Expected a host hook object")
         body["ai_os_host"] = arguments.host
         return hook(root, arguments.event, body)
+    if arguments.command == "install-hooks":
+        return install_hooks(root, arguments.host, arguments.template)
     if arguments.command == "verify":
         argv = arguments.argv[1:] if arguments.argv[:1] == ["--"] else arguments.argv
         return verify(root, arguments.file, argv)
@@ -61,6 +69,8 @@ def run(arguments):
         return add_entry(root, arguments.task, arguments.file)
     if arguments.command == "promote":
         return promote(root, arguments.proposal)
+    if arguments.command == "amend":
+        return amend(root, arguments.proposal)
     if arguments.command == "recover":
         return recover(root)
     if arguments.command == "task":

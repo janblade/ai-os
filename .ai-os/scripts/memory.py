@@ -78,9 +78,10 @@ def add_entry(root, task, note):
         if workspace_path(root, JOURNAL).exists():
             raise ValueError("Recover the unfinished transaction first")
         before = path.read_bytes()
-        atomic_write(path, before + ("\n<!-- AIOS-ENTRY: " + identity + " -->\n" + text
-                                    + "\n<!-- /AIOS-ENTRY -->\n").encode("utf-8"))
-    return {"entry_id": identity, "task_sha256": digest(path.read_bytes())}
+        after = before + ("\n<!-- AIOS-ENTRY: " + identity + " -->\n" + text
+                          + "\n<!-- /AIOS-ENTRY -->\n").encode("utf-8")
+        atomic_write(path, after)
+    return {"entry_id": identity, "task_sha256": digest(after)}
 
 
 def encoded(raw):
@@ -177,7 +178,7 @@ def promote(root, proposal):
             if ("AIOS-ENTRY: " + identity).encode() in staged:
                 raise ValueError("Entry already promoted to this destination")
             provenance = canonical_json({"task": proposal["task"], "entry_id": identity,
-                                         "evidence": item["evidence"]}).decode("ascii")
+                                         "evidence": item["evidence"]}).decode("utf-8")
             changes[destination] = (previous, staged + ("\n" + entry.group(0) + "\n<!-- AIOS-PROVENANCE: "
                                                        + provenance + " -->\n").encode("utf-8"))
             selected.add(identity)
@@ -186,10 +187,45 @@ def promote(root, proposal):
         for identity in selected:
             remaining = remaining.replace(entries[identity].group(0), "", 1)
         changes[task] = (before, remaining.encode("utf-8"))
-        log = workspace_path(root, ".ai-os/memory/episodic/decisions.jsonl")
-        old_log = state(log)
-        decision = {"timestamp": datetime.now(timezone.utc).isoformat(), "type": "memory_promotion",
-                    "task": proposal["task"], "entries": sorted(selected), "rationale": "accepted, verified selective promotion"}
-        changes[log] = (old_log, (old_log or b"") + canonical_json(decision) + b"\n")
+        add_decision(root, changes, "Promoted task entries: " + ", ".join(sorted(selected)),
+                     "Accepted entries with fresh verification evidence")
         transact(root, changes)
         return {"promoted": sorted(selected)}
+
+
+def add_decision(root, changes, what, why):
+    log = workspace_path(root, ".ai-os/memory/episodic/decisions.jsonl")
+    before = state(log)
+    decision = {"ts": datetime.now(timezone.utc).isoformat(), "type": "decision", "what": what,
+                "why": why, "files": [path.relative_to(root).as_posix() for path in changes]}
+    prefix = before or b""
+    if prefix and not prefix.endswith(b"\n"):
+        prefix += b"\n"
+    changes[log] = (before, prefix + canonical_json(decision) + b"\n")
+
+
+def amend(root, proposal):
+    proposal = read_json(workspace_path(root, proposal))
+    with memory_lock(root):
+        if workspace_path(root, JOURNAL).exists():
+            raise ValueError("Recover the unfinished transaction first")
+        if proposal.get("accepted") is not True:
+            raise ValueError("Amendment needs an explicitly accepted review")
+        path = memory_path(root, proposal["destination"], "semantic/knowledge")
+        before = path.read_bytes()
+        if digest(before) != proposal["destination_sha256"]:
+            raise ValueError("Destination changed since review")
+        validate_evidence(root, proposal["evidence"])
+        text, old = before.decode("utf-8"), proposal["old_text"]
+        if not isinstance(old, str) or not old or text.count(old) != 1:
+            raise ValueError("Amendment must identify exactly one existing passage")
+        new = context_item(root, proposal["replacement_file"], "reviewed correction")["content"] if proposal["replacement_file"] else ""
+        if UNRESOLVED.search(new):
+            raise ValueError("Unresolved work cannot become semantic memory")
+        after = text.replace(old, new, 1)
+        provenance = canonical_json({"evidence": proposal["evidence"], "replaces_sha256": digest(old.encode("utf-8"))})
+        after += "\n<!-- AIOS-AMENDMENT: " + provenance.decode("utf-8") + " -->\n"
+        changes = {path: (before, after.encode("utf-8"))}
+        add_decision(root, changes, "Amended semantic memory", "Reviewed correction or retraction with fresh evidence")
+        transact(root, changes)
+        return {"amended": path.relative_to(root).as_posix()}
