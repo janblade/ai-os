@@ -7,6 +7,7 @@ from pathlib import Path
 
 from context import build_pack, create_task, diff_packs, load_snapshot, render_pack, save_snapshot, task_path
 from storage import canonical_json, workspace_path
+from memory import add_entry, promote, recover, verify
 
 
 def parser():
@@ -27,11 +28,29 @@ def parser():
     diff = commands.add_parser("diff", help="Inspect changes between context snapshots")
     diff.add_argument("before")
     diff.add_argument("after")
+    evidence = commands.add_parser("verify", help="Record a check against explicit dependency files")
+    evidence.add_argument("--file", action="append", required=True)
+    evidence.add_argument("argv", nargs=argparse.REMAINDER)
+    entry = commands.add_parser("entry", help="Append an identified task note")
+    entry.add_argument("--task", required=True)
+    entry.add_argument("--file", required=True)
+    promotion = commands.add_parser("promote", help="Apply a reviewed selective promotion proposal")
+    promotion.add_argument("proposal")
+    commands.add_parser("recover", help="Recover an interrupted memory transaction")
     return result
 
 
 def run(arguments):
     root = arguments.project.resolve()
+    if arguments.command == "verify":
+        argv = arguments.argv[1:] if arguments.argv[:1] == ["--"] else arguments.argv
+        return verify(root, arguments.file, argv)
+    if arguments.command == "entry":
+        return add_entry(root, arguments.task, arguments.file)
+    if arguments.command == "promote":
+        return promote(root, arguments.proposal)
+    if arguments.command == "recover":
+        return recover(root)
     if arguments.command == "task":
         path = create_task(root, arguments.name) if arguments.create else task_path(root, arguments.name)
         return path.relative_to(root).as_posix()
@@ -55,7 +74,7 @@ def main():
         sys.stdout.buffer.write(result.encode("utf-8") if isinstance(result, str)
                                 else canonical_json(result))
         sys.stdout.buffer.write(b"\n")
-        return 0
+        return 1 if isinstance(result, dict) and result.get("passed") is False else 0
     except (ValueError, OSError, KeyError, TypeError) as error:
         print("AI-OS: " + str(error), file=sys.stderr)
         return 2
