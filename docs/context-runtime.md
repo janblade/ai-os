@@ -85,6 +85,11 @@ dependency files. Destination entries retain task/entry/evidence provenance, and
 the decision log is part of the transaction. Entry IDs prevent repeated promotion
 to the same destination; reviewing semantic duplicates still requires judgment.
 
+Destinations are restricted to `memory/semantic/knowledge/*.md` and the
+`memory/semantic/project_knowledge.md` index. Index registration can be a selected
+reviewed entry in the same multi-file proposal as a new domain. Amendments also
+support the index; no raw semantic file-tool bypass is needed.
+
 `accepted: true` records the review decision, **not proof of human approval**.
 Follow existing user authorization and host approval requirements. These files
 are editable by the same user; hashes detect drift, not a malicious writer.
@@ -97,13 +102,23 @@ that no writer is active before removing that lock and recovering. This is not
 global filesystem atomicity for programs that ignore the lock. Keep runtime
 evidence, snapshots, and journals private and ignored.
 
+For `MEMORY_AMEND`, use `amend amendment.json` with `destination`,
+`destination_sha256`, `accepted: true`, `evidence`, `old_text` (exactly one matching
+passage), and `replacement_file` (a reviewed workspace note, or null to retract).
+The transaction retains unrelated text and records amendment provenance and a
+decision. Review what the evidence proves and any cross-branch conflict before
+applying. For relocation, retain the new reviewed note before retracting the old one.
+
 ## Host hooks
 
-Merge the installer template's entries into the host's existing hook arrays,
-preserving unrelated entries. Claude Code uses `claude-code-hooks.json` in
+Use `install-hooks --host claude|codex --template <package-template-path>` to
+merge reviewed hooks without replacing unrelated settings. It is idempotent,
+preserves narrowed subagent matchers, and checks the actual Claude CLI version.
+Claude Code uses `claude-code-hooks.json` in
 `.claude/settings.json`; Codex uses `codex-hooks.json` in `.codex/hooks.json`.
 The Codex template resolves the script from the Git root; its Windows override
-uses PowerShell and `python` on PATH. For a non-Git project, replace the command
+uses PowerShell and `python` on PATH, with explicit exit-code propagation so a
+blocking Python exit 2 is not normalized into a non-blocking hook error. For a non-Git project, replace the command
 with the shell-quoted absolute script path. The hook CLI itself resolves the
 project from its installed script location, so subdirectory starts work.
 
@@ -141,3 +156,42 @@ Shell/MCP writers can bypass path-specific file checks. Cooperating memory
 commands enforce their own validation, while arbitrary programs need host
 permissions or sandbox controls. Snapshots and hashes provide reproducibility
 and drift detection, not protection against a writer who controls the hooks.
+
+## Context and token measurements
+
+The reproducible baseline is commit `8b905200f3ef5a740ef85de1aa686b7b3c2f4295`
+(v2.8.0). Run `python -B tests/measure_context.py` with Git and Bash available
+(Git Bash on Windows). It runs the original hook in an isolated fixture and
+compares its actual output with the current pack, without provider/model calls.
+The initial v2.9.0 result is recorded in `docs/context-measurement.json`:
+27,970 to 16,776 characters, **40.02% less startup text** (28,294 to 16,951 UTF-8
+bytes). This profile has no task or plan. Large notes and JSON provenance add
+variable overhead; this percentage is not a guarantee for every task.
+
+The comparison is against the legacy **Claude Code** hook. Codex had no equivalent
+automatic AI-OS injection in v2.8.0, so this figure does not establish Codex's
+before/after savings. Codex's impact depends on what it loaded previously; adding
+hooks to a previously inactive framework adds startup context. Its scoped packs
+and stable prefixes are useful, but native-session token savings remain unverified.
+
+Tests confirm byte-identical repeated assembly, UTF-8 text without unnecessary
+ASCII expansion, scoped source selection, and zero `additionalContext` on
+unchanged tool calls. Governance remains pinned. These improvements apply to
+the AI-OS payload on both hosts. Neither snapshots nor stable IDs by themselves
+compress text; the savings come from selection and avoiding duplicate injection.
+
+Stable prefixes support caching, but actual provider context also includes host
+instructions, tools, settings, and conversation history. A matching AI-OS pack
+alone cannot guarantee a cache hit, reclaim previous tokens, or predict billing.
+See [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching)
+and [Claude prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
+This complements [Codex's on-demand skills](https://learn.chatgpt.com/docs/build-skills)
+and [Claude's guidance on hooks and skills](https://code.claude.com/docs/en/costs).
+
+Provider token counts, cache hit rates, paid usage, latency, and model task-quality
+comparisons have not been measured. To verify them, compare matched fresh sessions
+with the same task/repo/model, record input/output and cached-input usage, and check
+the account's actual API/subscription billing. Character counts are not tokenizer
+counts. Local CLI versions checked: Claude Code 2.1.296; Codex 0.162.0-alpha.17.2
+with `hooks` enabled. Hook tests exercise actual launchers and synthetic host JSON;
+they do not establish live provider-session behavior.

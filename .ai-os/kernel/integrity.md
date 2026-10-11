@@ -2,13 +2,13 @@
 
 > Lightweight self-check for Boot §2. This is a structural sanity check an
 > agent can actually perform by listing files — not a cryptographic
-> verification. There is no integrity hash; nothing in this framework can
-> compute or check one without a tool the host may not offer, so we don't
-> pretend to.
+> verification. The Python context runtime checks hashes of selected sources
+> and stored snapshots; those detect drift, not signatures or authenticity of
+> the entire framework. This structural protocol works without that runtime.
 
 ## Required Directory Structure
 
-### Kernel Space (Immutable)
+### Kernel Space (protected by default)
 ```
 .ai-os/BOOT.md
 .ai-os/manifest.json
@@ -22,6 +22,14 @@
 .ai-os/genome/archetypes/startup.json
 .ai-os/genome/archetypes/enterprise.json
 .ai-os/genome/archetypes/critical.json
+.ai-os/scripts/session-start-hook.sh
+.ai-os/scripts/ai-os.sh
+.ai-os/scripts/ai_os.py
+.ai-os/scripts/context.py
+.ai-os/scripts/storage.py
+.ai-os/scripts/memory.py
+.ai-os/scripts/hooks.py
+.ai-os/scripts/installation.py
 ```
 
 ### User Space (Evolvable)
@@ -52,7 +60,6 @@
 .ai-os/registry/core.planning.sk/SKILL.md
 .ai-os/registry/core.dev-loop.sk/SKILL.md
 .ai-os/registry/core.simplicity.sk/SKILL.md
-.ai-os/scripts/session-start-hook.sh
 .ai-os/agents/index.json
 .ai-os/agents/supervisor.json
 .ai-os/agents/templates/web_developer.json

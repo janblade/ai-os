@@ -1,6 +1,6 @@
 # MaiKS
 
-MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
+MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Codex, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
 
 > **Deterministic, Git-Native Memory**
 > Instead of a vector database (RAG), MaiKS stores memory as plain Markdown and JSON files alongside your code, organized as a Hub (global project knowledge) and Spokes (per-branch task notes). When someone clones the repo, their AI reads the same project knowledge, decision history, and custom skills — no external database required.
@@ -33,11 +33,21 @@ identity and exact content for local replay and diffs. See
 [Reproducible AI-OS context](docs/context-runtime.md) for task identity, source
 selection, privacy, and usage. This is PACT-inspired tooling, not full PACT conformance.
 
-**"Won't reading the entire framework on every boot cost a fortune in tokens?"**
+The startup hook now injects the boot digest, active task, and active plan. Full
+rule files and skill procedures load only when selected. Ordinary gated tool calls
+add no repeated context; changed sources send only changed items. Stable ordering
+and rendering help preserve reusable prefixes, while the host controls its actual
+prompt, caching, and compaction.
 
-It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,000 tokens as measured) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
+The local governance-only comparison against the v2.8.0 Claude Code hook measured **40.02% less startup
+text**: 27,970 to 16,776 characters. This is a payload measurement, not a provider
+token count or billing result. Codex has no measured native-session baseline yet. Task/plan sizes vary, and already-sent messages remain
+in the host context. See [measurements and limits](docs/context-runtime.md#context-and-token-measurements).
 
-Net effect: boot costs roughly **4,500–5,000 tokens** (the task file's size is the one variable component) regardless of how much governance content the framework has accumulated, since new rules and skills live in files that are opt-in by trigger, not opt-out by size. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
+Claude Code and Codex hook templates are supplied. `install-hooks` merges them
+idempotently and preserves unrelated settings. Claude requires 2.1.295+ for
+fail-closed hook failures; Codex requires native hook review/trust and can fail open
+on launch errors/timeouts. Use host permissions for arbitrary shell/MCP writers.
 
 ---
 
@@ -65,7 +75,7 @@ graph TB
 
     %% Kernel Space
     subgraph KernelSpace ["KERNEL SPACE - Immutable by convention (R3; self-restraint, not a technical control)"]
-        BOOT["BOOT.md<br>(Hot-core Boot Prompt, ~4K tokens)"]:::kernel
+        BOOT["BOOT.md<br>(Governance Digest)"]:::kernel
         MANIFEST["manifest.json<br>(System Configurations)"]:::kernel
         INTEGRITY["kernel/integrity.md<br>(Structural Self-Checks, no checksum)"]:::kernel
         BOOTSTRAP["kernel/bootstrap.md<br>(First-Boot Wizard, loaded once ever)"]:::kernel
@@ -294,4 +304,4 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 
 ---
 
-*MaiKS v2.8.0*
+*MaiKS v2.9.0*

@@ -13,6 +13,32 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.9.0 — Reproducible Context and Executable Memory Gates
+
+- **Context runtime:** Python 3.10+, no third-party dependencies. Stable task IDs,
+  selected source hashes/reasons, UTF-8 rendering, private snapshots, replay, and
+  diffs. PACT-inspired, without a browser DOM or full PACT conformance claim.
+- **Memory gates:** identified entries, checks against explicit dependencies,
+  fresh evidence, reviewed task/destination hashes, selective draining, amendment,
+  cooperative locking, and recovery journals. Unresolved/unselected notes and
+  active plan pointers survive promotion. Acceptance flags do not prove human approval.
+- **Host hooks:** shared startup/subagent context, mutation checks, changed-item
+  updates, and completion checks. Claude Code 2.1.295+ supports fail-closed gates;
+  Codex explicit denials work on supported tools but launch failures can fail open.
+  Native host permissions and Codex hook trust remain required.
+- **Authority:** host/user instructions outrank framework defaults. Existing scoped
+  user authorization persists; model-written override files never grant permission.
+- **Migration action:** ensure new scripts exist, then run `install-hooks` with
+  the relevant package template. Preserve unrelated settings and narrowed subagent
+  matchers; review/trust changed Codex hooks in `/hooks`. Keep `memory/runtime/`
+  ignored and private; never copy runtime state into another project. Retain legacy
+  task files, add an exact original `Branch:` header only after ownership review,
+  and resolve names through the CLI. Never bulk-rename or clear existing notes.
+  Existing installs lacking bridges skip fresh-install resets. Re-running hook
+  installation or checking a migrated knowledge index is idempotent.
+- Measurement and limitations: `docs/context-runtime.md` and
+  `docs/context-measurement.json` in the source package.
+
 ## v2.8.0 — Automatic Peer Review on Plan Execution
 
 - **`PLAN_EXECUTE` now runs a review pass automatically** (EP-67): `core.planning.sk` gained

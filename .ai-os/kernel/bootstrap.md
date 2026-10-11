@@ -32,7 +32,7 @@ Create missing memory files with empty/default content. Never overwrite existing
 
 ```
 ╔══════════════════════════════════════════════╗
-║          AI OS v2.8.0 — First Boot          ║
+║          AI OS v2.9.0 — First Boot          ║
 ╠══════════════════════════════════════════════╣
 ║ Project:    {name}                          ║
 ║ Archetype:  {archetype}                     ║
