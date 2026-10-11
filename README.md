@@ -27,6 +27,12 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 
 ## Token Economics
 
+Executable, reproducible context packs are available with Python 3.10+:
+`python .ai-os/scripts/ai_os.py pack --snapshot --render`. Packs retain source
+identity and exact content for local replay and diffs. See
+[Reproducible AI-OS context](docs/context-runtime.md) for task identity, source
+selection, privacy, and usage. This is PACT-inspired tooling, not full PACT conformance.
+
 **"Won't reading the entire framework on every boot cost a fortune in tokens?"**
 
 It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,000 tokens as measured) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
