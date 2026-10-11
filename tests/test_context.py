@@ -2,11 +2,14 @@ import json
 import os
 import subprocess
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
+from unittest.mock import patch
 
 from workspace import Workspace
 
 from context import build_pack, create_task, diff_packs, load_snapshot, render_pack, save_snapshot, task_key, task_path
-from storage import canonical_json, workspace_path
+from storage import canonical_json, memory_lock, workspace_path
 
 
 class ContextTests(Workspace):
@@ -103,6 +106,21 @@ class ContextTests(Workspace):
         new = build_pack(self.root, "feature")
         new["framework_version"] = "next"
         self.assertEqual(diff_packs(old, new)["metadata_changed"], ["framework_version", "task"])
+
+    def test_parallel_assembly_waits_for_a_cooperating_writer(self):
+        attempted = Event()
+        original = os.open
+        def observe(*args, **kwargs):
+            try:
+                return original(*args, **kwargs)
+            except FileExistsError:
+                attempted.set()
+                raise
+        with patch("storage.os.open", side_effect=observe), ThreadPoolExecutor(max_workers=1) as workers:
+            with memory_lock(self.root):
+                pending = workers.submit(build_pack, self.root, "main")
+                self.assertTrue(attempted.wait(1))
+            self.assertEqual(pending.result(timeout=2)["items"][0]["content"], "Governance\n")
 
 
 if __name__ == "__main__":

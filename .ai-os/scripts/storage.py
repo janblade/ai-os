@@ -6,6 +6,7 @@ import os
 import stat
 import subprocess
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -65,10 +66,15 @@ def atomic_write(path, data):
 def memory_lock(root):
     lock = workspace_path(root, RUNTIME + "/write.lock")
     lock.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as error:
-        raise ValueError("AI-OS memory is busy; check recovery before removing a stale lock") from error
+    deadline = time.monotonic() + 2
+    while True:
+        try:
+            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            break
+        except FileExistsError as error:
+            if time.monotonic() >= deadline:
+                raise ValueError("AI-OS memory is busy; check recovery before removing a stale lock") from error
+            time.sleep(0.01)
     os.close(descriptor)
     try:
         yield

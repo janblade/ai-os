@@ -18,7 +18,8 @@ JOURNAL = RUNTIME + "/transaction.json"
 def memory_path(root, name, directory):
     path = workspace_path(root, name)
     relative = path.relative_to(root).as_posix()
-    if not relative.startswith(".ai-os/memory/" + directory + "/") or path.suffix != ".md":
+    index = directory == "semantic/knowledge" and relative == ".ai-os/memory/semantic/project_knowledge.md"
+    if (not index and not relative.startswith(".ai-os/memory/" + directory + "/")) or path.suffix != ".md":
         raise ValueError("Expected a Markdown file in memory/" + directory)
     return path
 
@@ -105,7 +106,7 @@ def recover_locked(root):
         path = workspace_path(root, item["path"])
         relative = path.relative_to(root).as_posix()
         if (not relative.startswith((".ai-os/memory/tasks/", ".ai-os/memory/semantic/knowledge/"))
-                and relative != ".ai-os/memory/episodic/decisions.jsonl") or path in seen:
+                and relative not in {".ai-os/memory/episodic/decisions.jsonl", ".ai-os/memory/semantic/project_knowledge.md"}) or path in seen:
             raise ValueError("Invalid recovery target")
         seen.add(path)
         before, after = decoded(item["before"]), decoded(item["after"])

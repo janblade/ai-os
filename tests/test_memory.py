@@ -131,3 +131,13 @@ class MemoryTests(Workspace):
         log = self.root / ".ai-os/memory/episodic/decisions.jsonl"
         for line in log.read_text().splitlines():
             self.assertEqual(set(json.loads(line)), {"ts", "type", "what", "why", "files"})
+
+    def test_knowledge_index_can_use_the_same_transaction(self):
+        _, proposal = self.prepare()
+        index = self.write(".ai-os/memory/semantic/project_knowledge.md", "# Existing index\n")
+        proposal["promotions"][0].update(destination=".ai-os/memory/semantic/project_knowledge.md",
+                                          destination_sha256=digest(index.read_bytes()))
+        self.write("proposal.json", json.dumps(proposal))
+        promote(self.root, "proposal.json")
+        self.assertTrue(index.read_text().startswith("# Existing index\n"))
+        self.assertIn("The module exports", index.read_text())
