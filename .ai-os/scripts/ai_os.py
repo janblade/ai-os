@@ -55,7 +55,7 @@ def run(arguments):
     default_root = Path(__file__).resolve().parents[2] if arguments.command == "hook" else Path.cwd()
     root = (arguments.project or default_root).resolve()
     if arguments.command == "hook":
-        body = json.load(sys.stdin)
+        body = json.loads(sys.stdin.buffer.read().decode("utf-8-sig"))
         if not isinstance(body, dict):
             raise ValueError("Expected a host hook object")
         body["ai_os_host"] = arguments.host
@@ -98,7 +98,7 @@ def main():
         sys.stdout.buffer.write(b"\n")
         return 1 if isinstance(result, dict) and result.get("passed") is False else 0
     except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
-        print("AI-OS: " + str(error), file=sys.stderr)
+        sys.stderr.buffer.write(("AI-OS: " + str(error) + "\n").encode("utf-8", errors="replace"))
         return 2
 
 

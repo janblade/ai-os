@@ -128,3 +128,44 @@ class HookTests(Workspace):
         result = subprocess.run(command + ["PreToolUse"], input=json.dumps(self.body("PreToolUse", tool_name="Bash", tool_input={})),
                                 text=True, capture_output=True, env=environment)
         self.assertEqual(result.returncode, 2, result.stderr)
+
+    def test_hook_stdin_is_utf8_even_with_legacy_python_console_encoding(self):
+        package = Path(__file__).resolve().parents[1]
+        cli = package / ".ai-os/scripts/ai_os.py"
+        environment = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+        command = [sys.executable, "-B", str(cli), "--project", str(self.root), "hook"]
+        body = self.body("SessionStart")
+        result = subprocess.run(command + ["SessionStart"], input=json.dumps(body).encode("utf-8"),
+                                capture_output=True, env=environment)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.write(".ai-os/memory/tasks/\u4efb\u52a1.md", "<!-- AIOS-ENTRY: " + "a" * 32 + " -->\nUnresolved\n<!-- /AIOS-ENTRY -->")
+        body = self.body("PreToolUse", tool_name="apply_patch", tool_input={"command":
+            "*** Begin Patch\n*** Delete File: .ai-os/memory/tasks/\u4efb\u52a1.md\n*** End Patch"})
+        result = subprocess.run(command + ["PreToolUse"], input=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+                                capture_output=True, env=environment)
+        self.assertEqual(result.returncode, 2, result.stderr)
+
+    @unittest.skipUnless(os.name == "nt", "Windows PowerShell hook contract")
+    def test_codex_windows_command_keeps_exit_2_and_resolves_root_from_subdirectory(self):
+        package = Path(__file__).resolve().parents[1]
+        destination = self.root / ".ai-os/scripts"
+        destination.mkdir(parents=True)
+        for file in (package / ".ai-os/scripts").glob("*"):
+            if file.is_file():
+                shutil.copyfile(file, destination / file.name)
+        subprocess.run(["git", "init", str(self.root)], capture_output=True, check=True)
+        child = self.root / "child"
+        child.mkdir()
+        template = json.loads((package / ".ai-os-installer/templates/codex-hooks.json").read_text())
+        environment = {**os.environ, "PATH": str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"]}
+        for event in ["SessionStart", "PreToolUse"]:
+            command = template["hooks"][event][0]["hooks"][0]["commandWindows"]
+            body = self.body(event)
+            if event == "PreToolUse":
+                body.update(tool_name="apply_patch", tool_input={"command":
+                    "*** Begin Patch\n*** Add File: .ai-os/memory/semantic/knowledge/fake.md\n+unverified\n*** End Patch"})
+            result = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", command],
+                                    cwd=child, input=json.dumps(body).encode("utf-8"), capture_output=True, env=environment)
+            self.assertEqual(result.returncode, 0 if event == "SessionStart" else 2, result.stderr)
+            if event == "SessionStart":
+                self.assertIn("Governance", json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"])

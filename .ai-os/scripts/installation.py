@@ -30,7 +30,8 @@ def install_hooks(root, host, template):
                 raise ValueError("Claude gates must fail closed")
         elif host == "codex":
             tail = ' "$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py" hook ' + event + ' --host codex'
-            if (handler.get("command") != "python3" + tail or handler.get("commandWindows") != "python" + tail
+            if (handler.get("command") != "python3" + tail
+                    or handler.get("commandWindows") != "python" + tail + "; exit $LASTEXITCODE"
                     or handler.get("type") != "command"):
                 raise ValueError("Unrecognized Codex hook command")
         else:
