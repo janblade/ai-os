@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|clear|compact",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
@@ -18,6 +18,31 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.ai-os/scripts/session-start-hook.sh\" SubagentStart"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.ai-os/scripts/session-start-hook.sh\" PreToolUse",
+            "timeout": 15,
+            "onFailure": "block"
+          }
+        ],
+        "matcher": "Write|Edit|MultiEdit|Bash|PowerShell"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.ai-os/scripts/session-start-hook.sh\" Stop",
+            "timeout": 15,
+            "onFailure": "block"
           }
         ]
       }

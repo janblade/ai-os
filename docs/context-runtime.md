@@ -96,3 +96,48 @@ overwrite outside edits. If a process crashed while holding `write.lock`, verify
 that no writer is active before removing that lock and recovering. This is not
 global filesystem atomicity for programs that ignore the lock. Keep runtime
 evidence, snapshots, and journals private and ignored.
+
+## Host hooks
+
+Merge the installer template's entries into the host's existing hook arrays,
+preserving unrelated entries. Claude Code uses `claude-code-hooks.json` in
+`.claude/settings.json`; Codex uses `codex-hooks.json` in `.codex/hooks.json`.
+The Codex template resolves the script from the Git root; its Windows override
+uses PowerShell and `python` on PATH. For a non-Git project, replace the command
+with the shell-quoted absolute script path. The hook CLI itself resolves the
+project from its installed script location, so subdirectory starts work.
+
+`SessionStart` (startup/resume/clear/compact) and `SubagentStart` inject the boot
+digest, task, and active plan and save a reproducible snapshot. Full rule files
+and skills are selected only when needed. `PreToolUse` checks current sources,
+stored context integrity, and transaction state before configured mutation
+tools. Missing startup state or invalid inputs block with exit 2. Unchanged
+context emits no additional payload; changed sources emit only changed items
+and removed IDs. The host retains earlier messages: an update supersedes old
+text logically, rather than erasing it or reclaiming its tokens. Governance is
+first in initial packs and cannot be removed by optional selection.
+
+Direct file-tool writes to semantic memory/runtime state are blocked, as are
+destructive edits to identified task notes. Codex `apply_patch` add/update/delete/
+move paths are checked too; patches to tasks with identified notes are blocked
+conservatively, so use the memory CLI for them. `Stop` blocks completion while a
+memory transaction remains unfinished. Recover from a separate terminal if the
+gate prevents running commands in the session. Host permissions remain in force;
+the hooks never return a blanket `allow` or manufacture a human approval.
+
+Claude Code **2.1.295+** is required for `onFailure: "block"`, which prevents a
+missing/crashing/timed-out mutation gate from silently continuing. The template
+sets it on `PreToolUse` and `Stop`. See the official
+[Claude hook contract](https://code.claude.com/docs/en/hooks).
+Codex requires reviewing/trusting project hooks through `/hooks`. Explicit exit 2
+and denial responses block supported tools, but launch errors/timeouts may fail
+open, and some specialized tool paths bypass hooks. Codex also limits large
+hook context; this template uses a positive 6,000-token approximate spill
+threshold. Oversized task packs can still be previewed with the full text saved
+by the host. Confirm behavior in the installed host before relying on it. See
+the official [Codex hook contract](https://learn.chatgpt.com/docs/hooks).
+
+Shell/MCP writers can bypass path-specific file checks. Cooperating memory
+commands enforce their own validation, while arbitrary programs need host
+permissions or sandbox controls. Snapshots and hashes provide reproducibility
+and drift detection, not protection against a writer who controls the hooks.

@@ -2,17 +2,19 @@
 """Small, standard-library-only command entry point for AI-OS."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from context import build_pack, create_task, diff_packs, load_snapshot, render_pack, save_snapshot, task_path
 from storage import canonical_json, workspace_path
 from memory import add_entry, promote, recover, verify
+from hooks import hook
 
 
 def parser():
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("--project", type=Path, default=Path.cwd())
+    result.add_argument("--project", type=Path)
     commands = result.add_subparsers(dest="command", required=True)
     task = commands.add_parser("task", help="Resolve or create task memory without renaming legacy files")
     task.add_argument("--name", required=True)
@@ -37,11 +39,21 @@ def parser():
     promotion = commands.add_parser("promote", help="Apply a reviewed selective promotion proposal")
     promotion.add_argument("proposal")
     commands.add_parser("recover", help="Recover an interrupted memory transaction")
+    host_hook = commands.add_parser("hook", help="Process host hook input on stdin")
+    host_hook.add_argument("event", choices=["SessionStart", "SubagentStart", "PreToolUse", "Stop"])
+    host_hook.add_argument("--host", choices=["claude", "codex"], default="claude")
     return result
 
 
 def run(arguments):
-    root = arguments.project.resolve()
+    default_root = Path(__file__).resolve().parents[2] if arguments.command == "hook" else Path.cwd()
+    root = (arguments.project or default_root).resolve()
+    if arguments.command == "hook":
+        body = json.load(sys.stdin)
+        if not isinstance(body, dict):
+            raise ValueError("Expected a host hook object")
+        body["ai_os_host"] = arguments.host
+        return hook(root, arguments.event, body)
     if arguments.command == "verify":
         argv = arguments.argv[1:] if arguments.argv[:1] == ["--"] else arguments.argv
         return verify(root, arguments.file, argv)
@@ -75,7 +87,7 @@ def main():
                                 else canonical_json(result))
         sys.stdout.buffer.write(b"\n")
         return 1 if isinstance(result, dict) and result.get("passed") is False else 0
-    except (ValueError, OSError, KeyError, TypeError) as error:
+    except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
         print("AI-OS: " + str(error), file=sys.stderr)
         return 2
 
