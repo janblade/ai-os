@@ -1,18 +1,21 @@
 # AI OS Framework Active
 
 This project is governed by the AI OS Framework. If your environment can read and follow
-`.ai-os/BOOT.md`, do that now for the full protocol — everything below is a fallback
+`.ai-os/BOOT.md`, use the validated startup pack if already supplied; otherwise read it — everything below is a fallback
 summary so this project stays governed correctly even on hosts that only read this file.
 
 ## Minimum Contract (applies even if you never open BOOT.md)
 
-1. **Kernel space is read-only**: never edit `.ai-os/BOOT.md`, `.ai-os/manifest.json`,
-   `.ai-os/kernel/`, `.ai-os/rules/`, or `.ai-os/genome/archetypes/` unless the user's
-   message contains the literal phrase `KERNEL OVERRIDE AUTHORIZED`.
+1. **Kernel read-only by default**: kernel files and hook code/settings require explicit
+   human authorization for named files or a bounded maintenance scope. Ordinary feature
+   requests do not grant governance edits. Honor existing scoped authorization without a
+   magic phrase or repeated approval. Direct file/patch tools cannot bypass protection;
+   apply approved maintenance through trusted host controls or an operator terminal,
+   log changes, then start a new session. Host instructions always take precedence.
 2. **Before writing code**: check for hardcoded secrets, obvious injection risk, and
    unsafe functions (`eval`, `os.system`) in what you're about to write. Never print
    credentials to chat or logs.
-3. **Before a substantive task**: read `.ai-os/memory/semantic/project_knowledge.md` for
+3. **Before a substantive task**: use `.ai-os/scripts/ai_os.py pack` with only relevant `--skill`/`--file` selections. Resolve task filenames with `.ai-os/scripts/ai_os.py task --name <original identity>`; never sanitize branch names manually. Then read `.ai-os/memory/semantic/project_knowledge.md` for
    confirmed project facts, and check `.ai-os/memory/tasks/` for an open task file — every
    branch gets one, including main (ask what to call it if there's no git identity and none
    exists yet) — for in-progress working notes.

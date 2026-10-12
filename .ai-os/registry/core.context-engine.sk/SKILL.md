@@ -36,15 +36,18 @@ Assemble optimal context for a task.
 ```
 
 **Procedure:**
-1. Parse the task description to identify key topics, files, and domains
-2. Check model tier. If reasoning tier model with massive context (>1M tokens) is active: enable **Massive Context Strategy** and skip aggressive pruning. Load full workspace modules.
-3. Score available context sources by relevance (see CONTEXT_SCORE)
-4. Assemble context in priority order (see priority list below)
-5. Keep a rough running sense of how much you've loaded (character count / 4 ≈ tokens);
-   this is an estimate for your own judgment, not a precise budget you're enforcing
-6. Stop adding low-relevance context once you have enough to answer confidently — don't
-   keep loading "just in case"
-7. Report: "Context loaded: {items_count} sources, roughly {tokens} tokens"
+1. Identify task-critical dependencies; score sources with CONTEXT_SCORE when useful.
+2. Run `python .ai-os/scripts/ai_os.py pack --snapshot --render` with repeated
+   `--skill <registered-id>` and `--file <workspace-path>` for relevant sources only.
+   CLI `--task` names an original branch/ad-hoc identity; it is not the task description.
+3. The assembler pins governance, active task, and active plan before optional sources,
+   deduplicates by stable source ID, hashes raw sources, and renders deterministically.
+4. Record the snapshot path (canonical pack JSON hash under memory/runtime/snapshots).
+   `diff <before> <after>` explains added/removed/changed sources; `replay <snapshot>`
+   reproduces AI-OS text independent of current files.
+5. Report source count and bytes/characters. Any character-to-token conversion is an
+   estimate; provider usage statistics are authoritative. Large context windows do not
+   justify loading whole modules automatically. Optional selection never removes governance.
 
 **Priority order for context assembly:**
 1. **Task-critical files** — Files directly mentioned or clearly needed for the task
@@ -114,10 +117,10 @@ Remove low-value context to make room for high-value information.
 4. Semantic knowledge for unrelated project areas
 5. *(Never prune)* Task-critical files and active code
 
-If `--aggressive`: Prune up to 50% of context. Normal mode prunes ~20%.
-*Note: If Massive Context Strategy is active, bypass pruning unless token budget explicitly exhausted.*
-
-**Output:** "Pruned {count} items, freed ~{tokens} tokens. New budget: {remaining}%"
+Assemble a new pack with fewer optional sources and inspect its diff. Keep pinned
+sources. Report only the pack-size reduction; this cannot erase messages already sent,
+free a claimed percentage of the provider context, or force host compaction. Use the
+host's supported clear/compaction controls when needed, then reload the current pack.
 
 ---
 
@@ -136,7 +139,7 @@ The four pillars of context engineering:
 - Don't load entire files when only a function is needed
 - Don't load all memory when only recent decisions matter
 - Don't load test files for modules you're not modifying
-- Clear irrelevant context before switching tasks
+- Select a fresh pack before switching tasks; host controls clear/compaction
 
 ### 3. Adaptive Context Strategy
 

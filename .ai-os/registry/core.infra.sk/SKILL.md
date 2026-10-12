@@ -264,7 +264,7 @@ Trace where a piece of data comes from and everywhere it ends up (or, run backwa
 ### INFRA_WORKTREE_START
 
 Create a physically isolated working directory for a branch, instead of relying on
-branch-name-sanitized task files alone for isolation.
+task-file identities alone for isolation.
 
 ```
 > OS_COMMAND INFRA_WORKTREE_START --branch=<name> [--base=<ref>]
@@ -273,14 +273,16 @@ branch-name-sanitized task files alone for isolation.
 **Procedure:**
 1. Confirm the workspace is a git repo (`git rev-parse --is-inside-work-tree`) — if not,
    report that worktrees aren't applicable here rather than failing silently.
-2. Determine the sibling directory path: `../<repo-name>-<sanitized-branch>` (same branch
-   sanitization rule as `BOOT.md` §2 step 4 — `/` and path-unsafe chars → `_`).
+2. Resolve `python .ai-os/scripts/ai_os.py task --name <original branch>`. Use the returned
+   filename stem for `../<repo-name>-<task-stem>`; never sanitize the branch independently.
+   Check the absolute sibling path before worktree operations and preserve an existing
+   directory (no automatic overwrite or deletion).
 3. If `--branch` doesn't exist yet, create it from `--base` (default: current branch) as
    part of the `git worktree add` invocation; if it already exists, attach to it.
 4. Run `git worktree add <path> <branch>` (or `git worktree add -b <branch> <path> <base>`
    for a new branch).
 5. Report the new path to the user. From here, normal task-memory flow applies unchanged:
-   `BOOT.md` §2 step 4 loads/creates `memory/tasks/[sanitized_branch].md` — worktrees add
+   `BOOT.md` §2 step 4 resolves task memory with the shared CLI — worktrees add
    filesystem isolation on top of that, they don't replace it.
 
 **Note:** this is a plain `git worktree` invocation — no host-specific capability assumed,

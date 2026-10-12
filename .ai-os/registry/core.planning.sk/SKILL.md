@@ -121,7 +121,7 @@ Turn a clarified feature into a concrete, ordered implementation plan.
    **Flat plan:**
    ```markdown
    # Plan: <one-line title>
-   - Branch: <sanitized branch name, or "none">
+   - Branch: <original branch name, or "none">
    - Created: <YYYY-MM-DD>
    - Status: approved          # draft | approved | in-progress | done | abandoned
    - Task file: memory/tasks/<name>.md

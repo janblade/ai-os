@@ -1,6 +1,6 @@
 # MaiKS
 
-MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
+MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Codex, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
 
 > **Deterministic, Git-Native Memory**
 > Instead of a vector database (RAG), MaiKS stores memory as plain Markdown and JSON files alongside your code, organized as a Hub (global project knowledge) and Spokes (per-branch task notes). When someone clones the repo, their AI reads the same project knowledge, decision history, and custom skills — no external database required.
@@ -27,11 +27,28 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 
 ## Token Economics
 
-**"Won't reading the entire framework on every boot cost a fortune in tokens?"**
+Executable, reproducible context packs are available with Python 3.10+:
+`python .ai-os/scripts/ai_os.py pack --snapshot --render`. Packs retain source
+identity and exact content for local replay and diffs. See
+[Reproducible AI-OS context](docs/context-runtime.md) for task identity, source
+selection, privacy, and usage. This reproducible context runtime assembles only
+explicitly selected sources and preserves them for inspection.
 
-It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,000 tokens as measured) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
+The startup hook now injects the boot digest, active task, and active plan. Full
+rule files and skill procedures load only when selected. Ordinary gated tool calls
+add no repeated context; changed sources send only changed items. Stable ordering
+and rendering help preserve reusable prefixes, while the host controls its actual
+prompt, caching, and compaction.
 
-Net effect: boot costs roughly **4,500–5,000 tokens** (the task file's size is the one variable component) regardless of how much governance content the framework has accumulated, since new rules and skills live in files that are opt-in by trigger, not opt-out by size. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
+The local governance-only comparison against the v2.8.0 Claude Code hook measured **37.37% less startup
+text**: 27,970 to 17,518 characters. This is a payload measurement, not a provider
+token count or billing result. Codex has no measured native-session baseline yet. Task/plan sizes vary, and already-sent messages remain
+in the host context. See [measurements and limits](docs/context-runtime.md#context-and-token-measurements).
+
+Claude Code and Codex hook templates are supplied. `install-hooks` merges them
+idempotently and preserves unrelated settings. Claude requires 2.1.295+ for
+fail-closed hook failures; Codex requires native hook review/trust and can fail open
+on launch errors/timeouts. Use host permissions for arbitrary shell/MCP writers.
 
 ---
 
@@ -58,11 +75,13 @@ graph TB
     end
 
     %% Kernel Space
-    subgraph KernelSpace ["KERNEL SPACE - Immutable by convention (R3; self-restraint, not a technical control)"]
-        BOOT["BOOT.md<br>(Hot-core Boot Prompt, ~4K tokens)"]:::kernel
-        MANIFEST["manifest.json<br>(System Configurations)"]:::kernel
-        INTEGRITY["kernel/integrity.md<br>(Structural Self-Checks, no checksum)"]:::kernel
-        BOOTSTRAP["kernel/bootstrap.md<br>(First-Boot Wizard, loaded once ever)"]:::kernel
+    subgraph KernelSpace ["KERNEL SPACE - Read-only default; scoped human maintenance through host controls"]
+        BOOT["BOOT.md<br>(Governance Digest)"]:::kernel
+        MANIFEST["manifest.json<br>(Configuration; operational fields auto-update)"]:::kernel
+        INTEGRITY["kernel/integrity.md<br>(Structural Self-Checks)"]:::kernel
+        RUNTIME["scripts/ + host hook settings<br>(File/patch gates + protected-source drift checks)"]:::kernel
+        BOOTSTRAP["kernel/bootstrap.md<br>(First-Boot Wizard, before hook activation)"]:::kernel
+        ARCHETYPES["genome/archetypes/*.json<br>(Protected governance profiles)"]:::kernel
         
         subgraph GovernanceRules ["Governance Rules (loaded on-demand, not at boot)"]
             RULES["ultimate_rules.md<br>(Governance Rules)"]:::governance
@@ -73,8 +92,7 @@ graph TB
 
     %% Perception Layer
     subgraph PerceptionLayer ["Perception Layer"]
-        GENOME["project_genome.json<br>(Stack DNA File)"]:::database
-        ARCHETYPES["archetypes/*.json<br>(Hobby / Startup / Enterprise / Critical)"]:::database
+        GENOME["project_genome.json<br>(Stack DNA; agent-writable)"]:::database
     end
 
     %% User Space
@@ -83,7 +101,9 @@ graph TB
         
         subgraph MemorySystem ["Memory System - Structured Files"]
             EPISODIC["Episodic Memory<br>(decisions.jsonl + sessions.jsonl<br>+ last_session.json, decisions.archive.jsonl)"]:::database
-            SEMANTIC["Semantic (Hub)<br>(project_knowledge.md index<br>+ knowledge/*.md sub-files)"]:::database
+            SEMANTIC["Durable Semantic (Hub)<br>(project_knowledge.md index<br>+ knowledge/*.md; reviewed CLI writes)"]:::database
+            GENERATED["semantic/generated/<br>(Regenerable caches; agent-writable)"]:::database
+            STATE["memory/runtime/<br>(Private snapshots/evidence/recovery; CLI-managed)"]:::database
             TASK["Task (Spokes)<br>(tasks/ + archived_tasks/ + plans/,<br>orphan-swept & pruned)"]:::database
             PROCEDURAL["Procedural Memory<br>(workflows.json + playbooks.md)"]:::database
         end
@@ -113,12 +133,16 @@ graph TB
     %% Boot Redirection Flow
     AG & CL & CO & CU & WI -->|Redirect / Load| BOOT
 
-    %% Initialization Sequence (~4.5-5K tokens, 6 small files — see Token Economics)
+    %% Startup hook pins governance/task/plan; BOOT completes perception and continuity on demand
     BOOT -->|1. Skim Rules Digest, inline| GENOME
     ARCHETYPES -->|Calibrate one archetype| GENOME
     GENOME -->|2. Read last_session.json only - single-file lookup| EPISODIC
-    GENOME -->|3. Task branch? load/create tasks/*.md| TASK
+    GENOME -->|3. Every branch or named task: resolve/load/create task memory| TASK
     BOOT -.->|On-demand: conflict, security decision, or evolution| GovernanceRules
+    RUNTIME -->|Pin configuration; allow operational updates only| MANIFEST
+    RUNTIME -->|Deny rule edits and protected-source drift| RULES
+    RUNTIME -->|Inject BOOT, task, active plan| BOOT
+    RUNTIME -->|Store private snapshots and protected-source pins| STATE
     BOOT -.->|On-demand: something looks broken| INTEGRITY
     BOOT -.->|First boot only, once ever| BOOTSTRAP
     BOOT -.->|On-demand: command invoked| CMD_REG
@@ -144,7 +168,19 @@ graph TB
     HEAL_SK -.->|Detect loops & run checklists| TargetSkill
     EVO_SK -.->|Propose & verify self-updates| CoreSkills
     CTX_SK -.->|Score relevance for what to read| TargetSkill
+    INF_SK -->|Regenerable trace cache| GENERATED
 ```
+
+Kernel changes require explicit human authorization for named files/rules or bounded
+maintenance. Routine feature requests do not authorize governance edits. Apply approved
+maintenance through trusted host controls or an operator terminal, log it, then start a
+new session. Resume/clear/compact retain the existing protected-source baseline. Host
+instructions and scoped user authorization take precedence over framework defaults;
+model-written flags and context snapshots never grant permission. File/patch gates and
+drift checks reinforce this boundary; arbitrary shell/MCP writers still require host
+protection of kernel files, hook settings, and private runtime state. User-space skills,
+commands, working notes, and generated caches remain evolvable. Durable knowledge retains
+the verify-and-accept promotion gate.
 
 ---
 
@@ -288,4 +324,4 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 
 ---
 
-*MaiKS v2.8.0*
+*MaiKS v2.9.0*

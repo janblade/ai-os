@@ -11,7 +11,12 @@ Serialize only where a step explicitly says one action must precede another (e.g
 directory must exist before something is written into it).
 
 ## 🛑 Pre-Flight Safety Check
-Before proceeding, check if the host AI environment's bridge file (e.g., `.cursor/rules/ai-os.md`, `.windsurfrules`, `.agents/AGENTS.md`) is already configured with AI OS boot instructions. If it is already configured, **STOP IMMEDIATELY**. Inform the user: *"The AI OS Framework is already installed here. Please use the UPDATE_PROMPT.md instead to prevent memory loss and duplicate rules."* Do not execute any further steps. (Fallback case: if `.ai-os/` already exists in the project but the bridge files do not — e.g. someone copied it in manually before this ran — skip Step 1's copy, it's already done, and proceed from Step 2.)
+Before proceeding, check if the host AI environment's bridge file (e.g., `.cursor/rules/ai-os.md`, `.windsurfrules`, `.agents/AGENTS.md`) is already configured with AI OS boot instructions. If it is already configured, **STOP IMMEDIATELY**. Inform the user: *"The AI OS Framework is already installed here. Please use the UPDATE_PROMPT.md instead to prevent memory loss and duplicate rules."* Do not execute any further steps. (Fallback case: if `.ai-os/` already exists in the project but the bridge files do not — e.g. someone copied it in manually before this ran — record that this installation pre-existed, skip Step 1's copy, and proceed from Step 2. Also SKIP Step 4 entirely: missing bridges do not authorize resetting existing memory, rules, or manifest settings. Use UPDATE_PROMPT.md for framework upgrades.)
+
+Approved installation is bounded kernel/hook maintenance. If existing hooks protect the
+project, apply protected writes through trusted host controls or an operator terminal;
+ordinary file/patch tools cannot bypass them. Finish preparation and user-space merges
+before enabling hooks, log the approved changes, and start a new session afterward.
 
 ## Step 1: Locate & Copy the Framework Kernel
 You are being run from wherever the user downloaded/cloned MaiKS — this file lives
@@ -22,7 +27,7 @@ copied anything in manually before starting this conversation. You do the copyin
    this file lives in). Ask the user for the path if you can't resolve it from how you were
    invoked.
 2. Copy that package's `.ai-os/` folder into the root of the CURRENT project — the only
-   folder that needs to land there.
+   folder that needs to land there. Exclude `memory/runtime/` and `__pycache__/`: snapshots, evidence, journals, locks, and bytecode are private local state, never install templates.
 3. Do NOT copy `.ai-os-installer/` itself into the project. It stays in the downloaded
    package. Nothing else is needed from it this session, and a future upgrade uses a freshly
    downloaded package's `UPDATE_PROMPT.md` the same way — not a copy left behind here.
@@ -31,7 +36,7 @@ copied anything in manually before starting this conversation. You do the copyin
 Do not guess your environment. Use your file/directory listing tools to check the workspace root:
 - If a `.cursor` directory exists, you are in **Cursor**.
 - If a `.windsurf` directory or `.windsurfrules` exists, you are in **Windsurf**.
-- If neither exists, ask the user: *"Which AI assistant are you using? (Cursor, Windsurf, Claude Code, GitHub Copilot, Gemini/Antigravity)"*
+- If neither exists, ask the user: *"Which AI assistant are you using? (Cursor, Windsurf, Claude Code, Codex, GitHub Copilot, Gemini/Antigravity)"*
 
 ## Step 3: Merge Bridge Files (Do Not Overwrite!)
 Depending on the host environment, find the corresponding template file in `.ai-os-installer/templates/`.
@@ -44,27 +49,21 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
   ```
   followed by the `cursor-rules.md` template text. (Plain `.cursor/rules/ai-os.md` without frontmatter may not auto-load in current Cursor versions — use `.mdc`.)
 - **Windsurf:** Append to `.windsurfrules`.
-- **Claude Code:** Append to `CLAUDE.md`. Also merge **both** hook entries from
-  `.ai-os-installer/templates/claude-code-hooks.json` into the project's `.claude/settings.json`
-  (create it with that content if missing; if it already exists, merge into its
-  `hooks.SessionStart` and `hooks.SubagentStart` arrays — add each entry alongside whatever the
-  user already has, never replace an array). Both run `.ai-os/scripts/session-start-hook.sh`,
-  which injects the verbatim content of `BOOT.md` and `ultimate_rules.md` into context via
-  `hookSpecificOutput.additionalContext` — stronger than a re-read reminder, since it doesn't
-  depend on the agent choosing to act on the reminder afterward.
-  - `SessionStart` (`startup|clear|compact`) covers the main thread, including fresh session
-    starts, not just compaction.
-  - `SubagentStart` (matcher `.*`) covers dispatched agents, passing the event name as the
-    script's first argument. They are separate hook events precisely because session context
-    does **not** propagate to subagents: without this, an agent dispatched by
-    `DEV_IMPLEMENT_REVIEWED` or any other flow runs with no R1 security review, no R21 claim
-    verification and no R13 logging, and returns work that looks governed in the parent thread.
-  - **Cost, stated plainly:** the injected payload is ~26 KB (roughly 6.5K tokens) and is paid
-    on *every* subagent spawn. If that's too much for a given project, narrow the
-    `SubagentStart` matcher instead of dropping the entry — it filters on agent type, so e.g.
-    `general-purpose|Plan` injects into agents that write or design and skips read-only search
-    agents. Removing it entirely is a governance decision, not a tuning one; say so to the user
-    if they ask for that.
+- **Claude Code:** Append the `CLAUDE.md` bridge. Require Python 3.10+ and Claude Code
+  2.1.295+ on PATH. Prepare this command; run it in Step 6 after initialization:
+  `python .ai-os/scripts/ai_os.py install-hooks --host claude --template <package-root>/.ai-os-installer/templates/claude-code-hooks.json`
+  The helper checks Claude's actual version and merges startup, subagent, mutation, and
+  completion hooks without replacing unrelated settings. It also merges the scoped
+  shell-script LF rule into `.gitattributes`, preserving other rules. No silent fallback when runtime
+  requirements fail. Verify `/hooks` lists all four events after restarting the host.
+- **Codex:** Append the root `AGENTS.md` bridge once. Prepare this command for Step 6:
+  `python .ai-os/scripts/ai_os.py install-hooks --host codex --template <package-root>/.ai-os-installer/templates/codex-hooks.json`
+  Python 3.10+ and a host with hooks support are required. The template resolves the Git
+  root; Windows commands expect PowerShell and `python` on PATH. For non-Git projects,
+  adapt commands to shell-quoted absolute script paths after installation. Review/trust
+  the project hooks in Codex `/hooks`; never bypass trust automatically. Codex launch
+  errors/timeouts may fail open, so retain native host permissions. Both providers use
+  the same reproducible AI-OS pack; full rule/skill files load only when selected.
 - **GitHub Copilot:** Append to `.github/copilot-instructions.md`.
 - **Gemini / Antigravity:** Append to `.agents/AGENTS.md` and copy `skills.json` to `.agents/skills.json`.
 - **Root `AGENTS.md`:** Also create/append to a root-level `AGENTS.md` regardless of the above — it's the emerging cross-tool convention (Codex, Jules, and others read it directly), and costs nothing extra for hosts that ignore it.
@@ -72,6 +71,8 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
 **Fallback:** If you do not have the tool capabilities to create or edit files, do not apologize. Simply print the exact text of the template into the chat in a markdown block, and ask the user to paste it into their bridge file.
 
 ## Step 4: Purge Framework Meta-Memory & Reset Manifest
+**Only for a fresh Step 1 copy into a project with no prior `.ai-os/`. If it pre-existed, skip this whole step regardless of bridge or manifest state.**
+
 Since Step 1 copied `.ai-os/` directly from the MaiKS package, it still contains memory logs and genome details from the framework's own development. This will pollute the user's new project.
 Using your file editing tools, reset the following files to prevent context pollution. Items
 1–7 each target an independent file — batch them as parallel tool calls. Items 8 and 9 both
@@ -113,11 +114,18 @@ shared file rather than editing the same file twice.
 .ai-os/memory/episodic/sessions.jsonl
 .ai-os/memory/episodic/last_session.json
 .ai-os/memory/episodic/session_override.json
+.ai-os/memory/runtime/
 .ai-os/progress.md
 ```
 Do **not** add `decisions.jsonl` or `decisions.archive.jsonl` to this list — those are the
 permanent audit trail and are meant to be shared/committed, unlike the per-machine session
 log above them.
 
-## Step 6: Boot!
-Read `.ai-os/BOOT.md` and begin executing the Initialization Checklist as the newly installed AI OS Kernel. Greet the user with the boot status banner!
+## Step 6: Initialize, Then Activate Hooks
+Read `.ai-os/BOOT.md` and complete its Initialization Checklist, including the first-boot
+wizard when required, before installing hooks. Retain the user's project name/archetype
+and project-rule answers as the scoped setup authorization; initialize memory without
+overwriting existing files. Log setup changes. Then run the chosen host's `install-hooks`
+command prepared in Step 3 through the authorized maintenance path. Review/trust hooks as
+required by the host, start a new session, and verify the boot banner and `/hooks` events.
+Do not enable the new gates before setup/reset writes finish, or bootstrap will be blocked.

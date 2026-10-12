@@ -1,0 +1,58 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook SessionStart --host codex",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook SessionStart --host codex; exit $LASTEXITCODE",
+            "timeout": 15,
+            "additionalContextLimit": 6000
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook SubagentStart --host codex",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook SubagentStart --host codex; exit $LASTEXITCODE",
+            "timeout": 15,
+            "additionalContextLimit": 6000
+          }
+        ],
+        "matcher": ".*"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook PreToolUse --host codex",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook PreToolUse --host codex; exit $LASTEXITCODE",
+            "timeout": 15,
+            "additionalContextLimit": 6000
+          }
+        ],
+        "matcher": "Bash|PowerShell|apply_patch|Write|Edit|MultiEdit"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook Stop --host codex",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.ai-os/scripts/ai_os.py\" hook Stop --host codex; exit $LASTEXITCODE",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

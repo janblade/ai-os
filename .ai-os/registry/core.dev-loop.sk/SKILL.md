@@ -59,24 +59,13 @@ Implement a task with a review pass — independent when possible, self-review w
       `PLAN_WRITE` if one exists for this task, and relevant conventions from
       `memory/semantic/knowledge/conventions_patterns.md`.
 
-      **A subagent does not inherit this session's boot state.** Session-start context is
-      parent-thread only — on Claude Code, `SessionStart` and `SubagentStart` are separate
-      hook events, so `scripts/session-start-hook.sh` (EP-56) injects BOOT.md into this
-      thread and into no dispatched agent. A subagent spawned without governance context is
-      an ungoverned writer: no R1 pre-mutation security review, no R21 claim verification,
-      no `AIOS-DEBT:` marker convention, no decision logging — and its output arrives here
-      looking exactly like governed work. Every dispatch prompt therefore carries, inline:
-      the Rules Digest (BOOT.md §3), the decision-log schema (§9), and the conventions
-      above. Cost is real (repeated per dispatch) and is the price of the check being worth
-      anything.
-
-      On Claude Code specifically, EP-60 automates this: a `SubagentStart` hook entry runs
-      `scripts/session-start-hook.sh SubagentStart`, injecting BOOT.md and `ultimate_rules.md`
-      into every dispatched agent. **Verify it before relying on it** — the hook lives in the
-      user's `.claude/settings.json`, not in this repo's payload, so it may be absent,
-      matcher-narrowed to exclude the agent type being dispatched, or the host may not be
-      Claude Code at all. Not confirmed present and in scope for this dispatch → carry the
-      context inline as above. Never assume the hook fired.
+      **Verify host context delivery before dispatch.** Claude Code and current Codex
+      support separate `SubagentStart` hooks. Confirm the hook is trusted/enabled, its
+      matcher covers the dispatched agent, and it supplies the AI-OS startup pack.
+      Host inheritance differs; never assume the parent's whole conversation propagates.
+      If delivery is unconfirmed, include one rendered pack with the Rules Digest, active
+      task/plan, and relevant sources. If the hook already supplies it, don't duplicate
+      governance inline. Select only the skills/files required for that agent's task.
    b. Once implementation returns, run the **Review Pass** (below) with the implementer's
       diff / changed files and the original task description as the spec. It is already on
       Path A's independent branch — a second, independent reviewer subagent.

@@ -75,7 +75,7 @@ Apply an approved evolution.
    - For `skill_update`: Modify the target SKILL.md
    - For `command_create`/`command_update`: Update `commands/index.json`
    - For `workflow_optimization`: Update `memory/procedural/workflows.json`
-   - For `memory_update`: Update target memory file
+   - For `memory_update`: update working/procedural memory directly; route durable semantic changes through `core.memory.sk` verification and reviewed `promote`/`amend` proposals
 5. **Verify**: Run integrity check:
    - All affected files parse correctly
    - `registry/index.json` is consistent with disk
@@ -84,7 +84,7 @@ Apply an approved evolution.
 6. **If verification passes**:
    - Update proposal status to APPLIED
    - Log in `decisions.jsonl`
-   - If the evolution was structural or architectural, update `memory/semantic/project_knowledge.md` to reflect the new system behavior
+   - If the evolution was structural or architectural, propose the durable knowledge/index update through `core.memory.sk`; verify/accept and apply with the memory CLI, preserving unselected notes
    - Increment `manifest.json.evolution_history.total_evolutions`
    - Update `manifest.json.evolution_history.last_evolution`
    - **Commit and push**: in this repo (MaiKS's own dev repo), finish by running `RELEASE`
@@ -216,7 +216,9 @@ applied evolution in this repo — the documented tail of `EVOLVE_APPLY` step 6.
 3. **Version.** Bump `manifest.json.ai_os_version` (and the README footer) **only if an EP
    explicitly calls for it.** Additive skill/command/memory content does not bump it
    (EP-43 / EP-58..61 precedent); a change to a kernel contract or anything that alters
-   compatibility for an installed project does.
+   compatibility for an installed project does. A version/configuration change is kernel
+   maintenance: require explicit scoped human authorization, apply through trusted host
+   controls or an operator terminal, log it, then start a new session before continuing.
 4. **Gate.** R9 clean-tree-before-self-modification (already satisfied if step 1 passed);
    R20 — never `--force`, hard-reset, or discard uncommitted work without explicit
    confirmation; `evolution_policy.md`'s 5-evolutions-per-conversation soft cap — if this

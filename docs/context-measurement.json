@@ -1,0 +1,15 @@
+{
+  "baseline_commit": "8b905200f3ef5a740ef85de1aa686b7b3c2f4295",
+  "baseline_host": "claude",
+  "baseline_version": "2.8.0",
+  "current_version": "2.9.0",
+  "profile": "governance only; no task or plan",
+  "baseline_characters": 27970,
+  "current_characters": 17518,
+  "character_reduction_percent": 37.37,
+  "baseline_utf8_bytes": 28294,
+  "current_utf8_bytes": 17693,
+  "identical_repeated_render": true,
+  "unchanged_tool_additional_context_characters": 0,
+  "provider_token_counts_or_billing_measured": false
+}

@@ -111,7 +111,7 @@
       "id": "core.memory.sk",
       "name": "Memory Lifecycle",
       "version": "1.0.0",
-      "description": "Backs TASK_CLOSE and MEMORY_CONSOLIDATE: verify-before-promote, diff-before-delete, dedup, branch-name sanitization, orphan sweep, and archive pruning for the task -> archived -> semantic pipeline.",
+      "description": "TASK_CLOSE, MEMORY_CONSOLIDATE, and MEMORY_AMEND: shared collision-safe identities, fresh evidence, reviewed selective promotions, recoverable transactions, and preservation of unresolved notes.",
       "entrypoint": "registry/core.memory.sk/SKILL.md",
       "commands": [
         "MEMORY_AMEND"
