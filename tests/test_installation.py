@@ -55,5 +55,3 @@ class InstallationTests(Workspace):
             with self.assertRaises(ValueError):
                 install_hooks(self.root, "claude", self.template("claude"))
         self.assertFalse((self.root / ".claude/settings.json").exists())
-
-
