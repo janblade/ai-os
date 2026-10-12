@@ -48,7 +48,8 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
   2.1.295+ on PATH. Run:
   `python .ai-os/scripts/ai_os.py install-hooks --host claude --template <package-root>/.ai-os-installer/templates/claude-code-hooks.json`
   The helper checks Claude's actual version and merges startup, subagent, mutation, and
-  completion hooks without replacing unrelated settings. No silent fallback when runtime
+  completion hooks without replacing unrelated settings. It also merges the scoped
+  shell-script LF rule into `.gitattributes`, preserving other rules. No silent fallback when runtime
   requirements fail. Verify `/hooks` lists all four events after restarting the host.
 - **Codex:** Append the root `AGENTS.md` bridge once, then run:
   `python .ai-os/scripts/ai_os.py install-hooks --host codex --template <package-root>/.ai-os-installer/templates/codex-hooks.json`

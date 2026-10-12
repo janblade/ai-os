@@ -24,8 +24,11 @@ class InstallationTests(Workspace):
         for host, name in [("claude", ".claude/settings.json"), ("codex", ".codex/hooks.json")]:
             other = {"matcher": "Bash", "hooks": [{"type": "command", "command": "user-check"}]}
             self.write(name, json.dumps({"permissions": {"deny": ["Bash(dangerous)"]}, "hooks": {"PreToolUse": [other]}}))
+            self.write(".gitattributes", "docs/*.md text eol=crlf\n")
             result = install_hooks(self.root, host, self.template(host))
             self.assertTrue(result["changed"])
+            self.assertEqual((self.root / ".gitattributes").read_text(),
+                             "docs/*.md text eol=crlf\n.ai-os/scripts/*.sh text eol=lf\n")
             config = json.loads((self.root / name).read_text())
             self.assertEqual(config["permissions"], {"deny": ["Bash(dangerous)"]})
             self.assertEqual(config["hooks"]["PreToolUse"][0], other)
@@ -54,4 +57,12 @@ class InstallationTests(Workspace):
         with patch("installation.subprocess.run", return_value=CompletedProcess([], 0, "2.1.294", "")):
             with self.assertRaises(ValueError):
                 install_hooks(self.root, "claude", self.template("claude"))
+        self.assertFalse((self.root / ".claude/settings.json").exists())
+
+    def test_claude_template_cannot_silently_use_powershell_for_bash_wrappers(self):
+        template = json.loads(self.template("claude").read_text())
+        template["hooks"]["PreToolUse"][0]["hooks"][0]["shell"] = "powershell"
+        path = self.write("wrong-shell.json", json.dumps(template))
+        with self.assertRaises(ValueError):
+            install_hooks(self.root, "claude", path)
         self.assertFalse((self.root / ".claude/settings.json").exists())

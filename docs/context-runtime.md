@@ -140,6 +140,18 @@ memory transaction remains unfinished. Recover from a separate terminal if the
 gate prevents running commands in the session. Host permissions remain in force;
 the hooks never return a blanket `allow` or manufacture a human approval.
 
+On native Windows, Claude's `.sh` wrappers run through **Git Bash**, not directly
+in PowerShell/cmd. The template explicitly selects `shell: "bash"`; install Git
+for Windows and keep Python 3.10+ discoverable inside that shell. If Claude cannot
+locate Git Bash, configure its documented `CLAUDE_CODE_GIT_BASH_PATH` with the
+actual `bash.exe` path. A bare `bash` in a PowerShell terminal can resolve to the
+Windows WSL launcher instead. For a manual run, use Git Bash or its absolute
+executable path. Codex's `commandWindows` uses PowerShell/Python directly and does
+not invoke `.sh` or require WSL. Repository `.gitattributes` keeps shell scripts
+LF even with `core.autocrlf=true`. The hook installer also adds the scoped LF rule
+to target projects without replacing unrelated attributes. Retain LF when copying
+or editing installed scripts.
+
 Claude Code **2.1.295+** is required for `onFailure: "block"`, which prevents a
 missing/crashing/timed-out mutation gate from silently continuing. The template
 sets it on `PreToolUse` and `Stop`. See the official

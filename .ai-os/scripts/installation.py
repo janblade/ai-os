@@ -24,7 +24,8 @@ def install_hooks(root, host, template):
             command = 'bash "${CLAUDE_PROJECT_DIR}/.ai-os/scripts/session-start-hook.sh"'
             if event != "SessionStart":
                 command += " " + event
-            if handler.get("command") != command or handler.get("type") != "command":
+            if (handler.get("command") != command or handler.get("type") != "command"
+                    or handler.get("shell") != "bash"):
                 raise ValueError("Unrecognized Claude hook command")
             if event in {"PreToolUse", "Stop"} and handler.get("onFailure") != "block":
                 raise ValueError("Claude gates must fail closed")
@@ -58,7 +59,19 @@ def install_hooks(root, host, template):
     after = canonical_json(config) + b"\n"
     if (path.read_bytes() if path.exists() else None) != before:
         raise ValueError("Host settings changed during merge; retry after review")
+    attributes = workspace_path(root, ".gitattributes")
+    attribute_before = attributes.read_bytes() if attributes.exists() else None
+    attribute_after = attribute_before or b""
+    rule = b".ai-os/scripts/*.sh text eol=lf"
+    if rule not in attribute_after.splitlines():
+        if attribute_after and not attribute_after.endswith(b"\n"):
+            attribute_after += b"\n"
+        attribute_after += rule + b"\n"
+    if (attributes.read_bytes() if attributes.exists() else None) != attribute_before:
+        raise ValueError("Git attributes changed during merge; retry after review")
+    if attribute_after != attribute_before:
+        atomic_write(attributes, attribute_after)
     if after != before:
         atomic_write(path, after)
-    return {"settings": name, "changed": after != before,
+    return {"settings": name, "changed": after != before or attribute_after != attribute_before,
             "host_review_required": host == "codex"}

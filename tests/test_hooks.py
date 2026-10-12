@@ -169,3 +169,17 @@ class HookTests(Workspace):
             self.assertEqual(result.returncode, 0 if event == "SessionStart" else 2, result.stderr)
             if event == "SessionStart":
                 self.assertIn("Governance", json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"])
+
+    def test_shell_script_checkout_keeps_lf_with_autocrlf_enabled(self):
+        package = Path(__file__).resolve().parents[1]
+        self.write(".gitattributes", (package / ".gitattributes").read_text())
+        source = package / ".ai-os/scripts/session-start-hook.sh"
+        destination = self.root / ".ai-os/scripts/session-start-hook.sh"
+        destination.parent.mkdir(parents=True)
+        destination.write_bytes(source.read_bytes())
+        subprocess.run(["git", "init", str(self.root)], capture_output=True, check=True)
+        command = ["git", "-C", str(self.root), "-c", "core.autocrlf=true"]
+        subprocess.run(command + ["add", ".gitattributes", ".ai-os/scripts/session-start-hook.sh"], capture_output=True, check=True)
+        subprocess.run(command + ["checkout-index", "--force", "--", ".ai-os/scripts/session-start-hook.sh"], capture_output=True, check=True)
+        self.assertNotIn(b"\r\n", destination.read_bytes())
+        self.assertEqual(destination.read_bytes(), source.read_bytes())
