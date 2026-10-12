@@ -6,10 +6,11 @@
 
 ## Evolution Boundaries
 
-### Kernel Space — IMMUTABLE (human + `KERNEL OVERRIDE AUTHORIZED` only)
+### Kernel Space: protected by default (user authorization and host permissions)
 
 | File | Why Protected |
 |---|---|
+| `scripts/*` and host hook settings | Executable context/memory gates; protect against unauthorized edits |
 | `BOOT.md` | Core identity/boot protocol — changing this changes everything |
 | `manifest.json` | Project identity — only `boot_count`/`last_boot`/`tech_stack`/`evolution_history` auto-update |
 | `kernel/integrity.md` | Self-verification — modifying this could mask corruption |
@@ -21,8 +22,10 @@
 Auto-updatable exceptions (no override needed): `manifest.json.boot_count`, `.last_boot`,
 `.tech_stack`, `.evolution_history`.
 
-Bypass mechanism (per-action and session-scoped) is defined in `rules/ultimate_rules.md`
-R3 — this table defines *what* is protected, R3 defines *how* protection can be lifted.
+Scoped human authorization is defined in `rules/ultimate_rules.md` R3. Apply approved
+kernel/hook maintenance through trusted host controls or an operator terminal; direct
+file/patch tools have no model-controlled bypass. Finish/log the approved changes and
+start a new session. Resume/clear/compact preserve the protected-source baseline.
 
 ### User Space — EVOLVABLE
 
@@ -33,7 +36,10 @@ R3 — this table defines *what* is protected, R3 defines *how* protection can b
 | `registry/index.json` | — | ✅ | — | Auto (mirrors disk) |
 | `commands/index.json` | — | ✅ | — | Auto (mirrors disk) |
 | `commands/aliases.json` | — | ✅ | — | Auto (log only) |
-| Memory files (all) | ✅ | ✅ | ✅ | Auto |
+| Working memory | ✅ | ✅ | ✅ | Auto |
+| Durable semantic memory/index | CLI | CLI | Scoped amendment | Reviewed CLI proposal with fresh evidence and hashes |
+| `semantic/generated/` caches | ✅ | ✅ | ✅ | Auto (regenerable, not durable knowledge) |
+| Runtime state | CLI only | CLI only | CLI recovery only | Host permissions |
 | `project_genome.json` | — | ✅ | — | Auto (perception scan) |
 | `progress.md` | — | ✅ | — | Auto |
 
@@ -70,8 +76,9 @@ survive intact — only narrative connective tissue and restatement get cut.
 - Low risk, non-security → apply immediately, log in `decisions.jsonl`.
 - Medium risk → present proposal, apply after acknowledgment.
 - High risk or security-related → present proposal, wait for explicit "approved"/"proceed".
-- Kernel space → refuse; inform user `KERNEL OVERRIDE AUTHORIZED: {files}` (per-action) or
-  `KERNEL OVERRIDE AUTHORIZED FOR SESSION: {scope}` (standing grant, R3) is required.
+- Kernel space: require an explicit grant for named files/rules or bounded maintenance.
+  Honor existing authorization; ask only if scope is missing. Apply through trusted host
+  controls or an operator terminal and start a new session; never self-authorize a bypass.
 
 ### 3. CHECK — Verify
 1. Integrity check — all files parse.
@@ -125,11 +132,11 @@ and summarize all changes made. "Continue evolving" resets the counter.
 ## Forbidden Evolutions
 
 Never permitted for the agent to do unilaterally — no archetype setting relaxes any of
-these, and `KERNEL OVERRIDE AUTHORIZED` is the floor, not a bypass, for #1:
-1. Modifying this file without `KERNEL OVERRIDE AUTHORIZED` (with it: human-directed
+these; user authorization and host permissions govern kernel changes:
+1. Modifying this file without explicit scoped human authorization (with it: human-directed
    only, never agent-initiated).
 2. Removing or weakening security scan requirements.
 3. Increasing the agent's own permission boundaries.
 4. Disabling logging or audit trail.
-5. Modifying existing rules without `KERNEL OVERRIDE AUTHORIZED`.
+5. Modifying existing rules without explicit scoped human authorization.
 6. Bypassing human approval gates for a lower archetype level.

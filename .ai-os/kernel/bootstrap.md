@@ -4,7 +4,15 @@
 > If `memory/semantic/project_knowledge.md` already contains real project data
 > despite the empty manifest, do NOT run the wizard — just ask the user:
 > *"Your manifest is unconfigured, but I see existing project memory. What
-> should I set as the project name?"* and update `manifest.json` directly.
+> should I set as the project name?"* and apply only that project-name change through the scoped maintenance path below.
+
+First boot is bounded setup maintenance: the user's project-name/archetype/rule answers
+authorize those specific configuration changes, not unrelated governance edits. During a
+fresh install, initialize configuration/default memory before activating hooks. If gates
+are already active, prepare the setup changes, apply protected configuration/default-file
+writes through trusted host controls or an operator terminal, preserve existing memory,
+log the scope/changes, then start a new session. Do not fabricate an override flag or
+keep retrying denied file tools. Operational manifest updates remain permitted afterward.
 
 Otherwise, run the full bootstrap:
 
@@ -32,7 +40,7 @@ Create missing memory files with empty/default content. Never overwrite existing
 
 ```
 ╔══════════════════════════════════════════════╗
-║          AI OS v2.8.0 — First Boot          ║
+║          AI OS v2.9.0 — First Boot          ║
 ╠══════════════════════════════════════════════╣
 ║ Project:    {name}                          ║
 ║ Archetype:  {archetype}                     ║

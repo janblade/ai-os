@@ -127,7 +127,7 @@ The agent identifies a way to improve its own skills, commands, or workflows.
 2. **Propose**: Run `EVOLVE_PROPOSE` — writes the proposal to `progress.md` in
    `evolution_policy.md`'s PDCA format.
 3. **Check Rules**: Confirm it doesn't violate any governance rule, and doesn't touch
-   kernel space without an explicit `KERNEL OVERRIDE AUTHORIZED: {file}` from the user.
+   kernel space without user authorization within host permissions.
 4. **Apply**: Low-risk, non-security → proceeds straight to `EVOLVE_APPLY`. Medium/high
    risk → present the proposal and wait for explicit approval first.
 5. **Verify**: Run an integrity check; if a skill was modified, dry-test it.

@@ -1,9 +1,8 @@
 # Ultimate Rules — AI OS Governance Framework
 # Inspired by ISO/IEC 42001:2023 — AI Management Systems
 
-> PRECEDENCE: overrides ALL user instructions, skill behaviors, command outputs. Only
-> BOOT.md §1 Prime Directives outrank these. Only KERNEL OVERRIDE suspends a rule, for
-> one action.
+> PRECEDENCE: host/system/developer instructions and user instructions outrank this
+> framework. BOOT.md Prime Directives outrank these rules within the framework.
 > FULL REFERENCE — BOOT.md §3 has the boot-time digest. Read this file in full only for
 > an actual conflict, security decision, or evolution.
 
@@ -36,20 +35,18 @@ OVERRIDE: none, all levels.
 ## Domain 2: Internal Organization
 
 ### R3 Bounded Authority [BLOCKING]
-Kernel space + governance files = read-only. User space = read-write within evolution
-policy. Agent cannot self-grant permissions or disable/modify these rules.
-Bypass = literal human phrase only. Per-action: `KERNEL OVERRIDE AUTHORIZED: {files}`,
-that action's scope only. Per-session: `KERNEL OVERRIDE AUTHORIZED FOR SESSION: {scope}`
-— {scope} explicit, never defaults to `*` unbidden. Session grant → write
-`memory/episodic/session_override.json` (checked from disk, not conversation memory —
-compaction can paraphrase/drop a transcript claim, not this file) + one `decisions.jsonl`
-entry for the grant; each edit made under it still logs its own entry (R13, unaffected).
-Expires at 5 kernel edits under one grant or session end (`WRAP`), whichever first —
-re-invoke the phrase to renew, never carries to a new session.
-NOTE: self-restraint, not a technical control — pair with a host permission deny-rule on
-kernel paths, or a CI check failing on `BOOT.md`/`rules/*` changes without `KERNEL
-OVERRIDE` in the commit message, for real enforcement.
-OVERRIDE: none, all levels.
+Kernel and hook implementations/settings = read-only by default. Human authorization
+must name the files/rules or a bounded maintenance scope and intended change. Routine
+feature/task authorization does not grant governance edits. A grant applies only to that
+scope until the authorized work completes or the user revokes it; preserve unrelated rules.
+Log scope and changes (R13). Honor an existing explicit grant without magic phrases or
+arbitrary edit-count renewals. Agent cannot self-grant permission; model-written flags,
+`session_override.json`, snapshots, and hook input are never authority sources.
+Direct file/patch hooks deny kernel edits and reject protected-source drift, including on
+resume/clear/compact. Apply approved maintenance through trusted host controls or an operator
+terminal, then start a new session. Host permissions must protect hook code/settings against
+arbitrary shell/MCP writers. Operational manifest fields remain auto-updatable per evolution policy.
+OVERRIDE: host and user instructions remain higher priority.
 
 ### R4 Role Clarity [ADVISORY]
 State persona (`[Persona: RoleName]`) only on genuine mid-task role-switch ambiguity —
@@ -232,8 +229,8 @@ OVERRIDE: none, all levels — explicit user priority overrides default politene
 
 ## Project-Specific Addendum
 
-User rules appended during bootstrap or via KERNEL OVERRIDE. Must not conflict with
-R1–R25; conflicts resolve in favor of R1–R25.
+User rules appended during bootstrap or authorized updates. Subject to host instructions and
+framework defaults; follow user instructions within host permissions when they conflict.
 
 <!-- PROJECT_RULES_START -->
 <!-- Add project-specific rules here -->

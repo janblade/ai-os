@@ -38,9 +38,28 @@ of what's worth keeping is a judgment call even when the underlying data is accu
 
 ## Dependencies
 
-- `observability.sk` — decision logging
+- `core.observability.sk` — decision logging
 
 ## Commands
+
+### Executable gate (Python 3.10+)
+
+Use `.ai-os/scripts/ai_os.py` for the mechanical steps below:
+- `verify --file <dependency> -- <check argv>` records current dependency/commit hashes.
+- `entry --task <resolved path> --file <reviewed note>` creates a stable entry ID.
+- `promote <reviewed proposal.json>` validates acceptance, fresh evidence, expected hashes,
+  unresolved markers, and destination scope; moves selected blocks and logs atomically
+  for cooperating tools. Unselected notes and plan pointers remain unchanged.
+- `amend <reviewed proposal.json>` corrects/retracts one exact passage with the same gates.
+- `recover` handles an interrupted transaction; never clear a journal or overwrite outside
+  edits blindly. A crashed writer's lock needs operator review before removal.
+
+Proposal schemas and limitations: `docs/context-runtime.md` in the source package.
+`accepted: true` is a recorded review decision, not proof of human permission. Use existing
+user authorization and host permission requirements; don't ask again for already-authorized
+work. Passing checks cover declared dependencies, not semantic truth. Review duplicate facts
+and choose the knowledge domain before creating a proposal. Convert legacy/episodic candidates
+into identified task entries first; do not bulk-clear old notes. Keep runtime data ignored.
 
 ### TASK_CLOSE
 
@@ -54,10 +73,9 @@ the current branch/task, confirm with the user before touching that file — don
 archive a task that isn't the one you're on.
 
 **Procedure:**
-1. **Resolve the task file.** Derive the filename the same way it was created (see
-   `BOOT.md` §2 step 4's sanitization rule): slashes and other path-unsafe characters in
-   the branch name become `_`, so `feature/oauth-fix` → `tasks/feature_oauth-fix.md`, not
-   a nested path. For an ad-hoc task (no git identity), use the name it was opened under.
+1. **Resolve the task file.** Run `python .ai-os/scripts/ai_os.py task --name <original identity>`.
+   Use the shared resolver, not manual sanitization. New names include a full identity hash;
+   legacy names require an exact `Branch:` header. Never infer ownership from a slug.
 2. **Verify facts before promoting.** For each candidate "confirmed truth" in the task
    file, re-check it against the actual current repo state (read the file, grep the
    symbol, run the check) before writing it to semantic memory — don't promote a claim
@@ -95,7 +113,9 @@ archive a task that isn't the one you're on.
    domain it matches (`architecture_overview.md` / `conventions_patterns.md` /
    `known_gotchas.md`) — only create a new domain file if nothing existing fits, and
    register it in `project_knowledge.md`'s index when you do.
-5. **Archive.** Move `tasks/[file].md` → `archived_tasks/[file].md`. If the task file's
+5. **Archive only after explicit closure.** Promote through the executable gate first.
+   Surface any remaining unresolved notes; retain them intact in the active task unless
+   the user has authorized closing/archiving that outstanding work. Never erase them. Move `tasks/[file].md` → `archived_tasks/[file].md`. If the task file's
    `Active plan:` pointer names a plan in `memory/plans/`, set that plan's `Status:` to
    `done` (steps finished) or `abandoned` (task closed with steps outstanding). If that
    plan is `Type: epic` and has no `## Retro` section yet, offer `PLAN_RETRO` before
@@ -129,16 +149,16 @@ note. Four additions specific to this command:
 skip straight to a permanent tier). Ticket branches close theirs explicitly via
 `TASK_CLOSE`. Protected branches never get a "done" event, so their task file is treated as
 *rolling*: on every `MEMORY_CONSOLIDATE`, run `TASK_CLOSE` steps 2/2a/3/4 against it, then
-clear it back to empty (don't move it to `archived_tasks/` — it isn't a finished ticket,
-it's ongoing scratch space that just got drained). If nothing in it passes the accept gate
+remove only the selected, accepted entry blocks with `promote` (do not archive a rolling
+task). Keep its header, active plan pointer, unresolved work, and all unselected notes. If nothing in it passes the accept gate
 yet, leave it as-is and don't force a promotion.
 
 **Orphan sweep** (run every time this executes, cheap): list `tasks/*.md` and compare
-against `git branch -a`. Any task file whose branch no longer exists locally or remotely is
+against original `Branch:` headers and `git branch -a` (local/remote identity, not filename). Any task file whose branch no longer exists locally or remotely is
 orphaned — move it to `archived_tasks/` with a one-line note ("orphaned — branch deleted
 without TASK_CLOSE") rather than leaving it to accumulate untouched. Ad-hoc task files (no
-matching branch by design) aren't orphans by this check — match them against the sanitized
-name they were opened under instead; only flag one as stale if it hasn't been touched in a
+matching branch by design) aren't orphans by this check; unmarked legacy files need review,
+not guessed ownership from a filename. For known ad-hoc identities, only flag one as stale if it hasn't been touched in a
 long time and no session has referenced it. Do not attempt to extract semantic truths from
 an orphaned file automatically — an abandoned branch's working notes may describe a design
 that was rejected, not confirmed; surface it to the user instead if it looks substantive.
@@ -197,7 +217,11 @@ outdated on this").
    proposed amendment and get explicit confirmation before writing, same as a promotion —
    correcting a shared fact that other sessions and other developers are relying on is at
    least as high-stakes as adding one.
-5. **Log distinctly.** Append to `decisions.jsonl` framed as an amendment, not a promotion —
+5. **Apply with the executable `amend` proposal** after re-checking current dependency
+   hashes and the destination hash. Relocation is two explicit reviewed operations: promote
+   the new gotcha first, then amend/retract the old passage; never delete before its
+   replacement is retained.
+6. **Log distinctly.** Append to `decisions.jsonl` framed as an amendment, not a promotion —
    include what was wrong, what changed, and the reason (bug reference, or who reported it).
    This audit trail is what lets a future session understand *why* a "confirmed truth" got
    walked back, instead of just seeing it silently replaced.

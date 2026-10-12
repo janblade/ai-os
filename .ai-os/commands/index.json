@@ -48,13 +48,13 @@
     {
       "name": "MEMORY_CONSOLIDATE",
       "type": "built-in",
-      "description": "Deliberate promotion pass — invoke this when the work is actually confirmed and ready, not just when you're pausing (see WRAP for that). Extract rules from decisions/episodic logs to semantic memory (verify-before-promote, diff-before-delete, dedup — see core.memory.sk), then archive processed decisions.jsonl entries to decisions.archive.jsonl and sweep tasks/ for orphaned files whose branch no longer exists. On a feature/ticket branch, excludes the active task file entirely (untouched until TASK_CLOSE). On a protected branch (main/master/develop/release), the task file there is rolling working memory, not a ticket file — apply the same verify/accept gate as TASK_CLOSE to its contents, promote what qualifies, then clear it (don't archive it as if a ticket finished). Also writes the session summary to sessions.jsonl and overwrites last_session.json.",
+      "description": "Deliberate reviewed promotion, not a session pause (WRAP). Stage candidate facts as identified task entries; record verification evidence and apply reviewed proposals through scripts/ai_os.py promote. Drain only selected accepted entries from rolling protected-branch tasks; preserve unresolved work, unselected notes, and active plan pointers. Feature tasks remain open until TASK_CLOSE. Review original Branch headers during orphan sweeps; never guess ownership from sanitized filenames.",
       "usage": "> OS_COMMAND MEMORY_CONSOLIDATE"
     },
     {
       "name": "TASK_CLOSE",
       "type": "built-in",
-      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, sanitized per BOOT.md §2), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
+      "description": "Resolve original task identity through scripts/ai_os.py task. Verify and selectively promote accepted facts with current evidence and reviewed hashes, preserving unresolved notes. Archive only when closure is authorized; preserve all remaining notes. Full procedure in core.memory.sk; write session continuity separately.",
       "usage": "> OS_COMMAND TASK_CLOSE [branch]"
     }
   ],
