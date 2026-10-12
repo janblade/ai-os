@@ -288,4 +288,4 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 
 ---
 
-*MaiKS v2.8.0*
+*MaiKS v2.9.0*

@@ -13,27 +13,36 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
-## v2.8.0 (cont'd) - Optional collision-safe task identities
+## v2.9.0 — Collision-safe task identities at boot, resume refresh, optional Codex adapter
 
-- `scripts/task_identity.py --name <original-identity> --create` opts a task into a
-  readable slug plus full SHA-256 filename. Startup lookup recognizes those files.
-  BOOT and its default task-creation instructions are unchanged; this is not a global
-  migration. See [task resolver usage](../.ai-os/scripts/TASK_IDENTITY.md).
-- **Migration action:** copy the scripts together, preserving LF for shell scripts.
-  Python 3.8+ enables lookup; without it, governance still loads with a task warning.
-- Headerless legacy names that contain only letters/digits/dots/hyphens, start with a
-  letter/digit, and match the stored filename case exactly are reused unchanged. This
-  includes main.md, master.md and develop.md. A single exact Branch: header permits
-  other legacy reuse. Lossy/ambiguous names warn and remain untouched for ownership review.
-- No automatic rename/deletion, override grant, kernel edit, hook gate, or snapshot state.
-
-## v2.8.0 (cont'd) - Refresh context on resume
-
-- Include `resume` in the Claude Code SessionStart matcher. **Migration action:** add
-  `resume` to the existing AI-OS startup matcher if missing; do not append a duplicate
-  handler or replace unrelated hooks or a customized SubagentStart matcher.
-- Source: [Claude Code SessionStart reference](https://code.claude.com/docs/en/hooks#sessionstart).
-  The hook still reports `SessionStart`; `resume` is the input source, not a new event.
+- **Task identity is now part of boot** (EP-80): `BOOT.md` §2 step 4 resolves task memory
+  with `python .ai-os/scripts/task_identity.py --create`, which keys new task files on the
+  exact branch name (readable slug + full SHA-256), so `feature/a_b` and `feature_a/b` no
+  longer share a file. Previously this was opt-in only. See
+  [task resolver usage](../.ai-os/scripts/TASK_IDENTITY.md).
+  **Migration action:** copy `.ai-os/scripts/` together (`task_identity.py`,
+  `TASK_IDENTITY.md`, `session-start-hook.sh`), preserving LF for shell scripts; add
+  `.ai-os/scripts/*.sh text eol=lf` to the project's `.gitattributes` if missing. Python
+  3.8+ is required for task lookup; without it the hook warns, skips task injection, and
+  still injects BOOT and ultimate rules.
+- **Existing task files are kept, never renamed or deleted.** Headerless legacy names made
+  only of letters/digits/dots/hyphens (starting with a letter/digit, exact filename case)
+  are reused in place — this covers `main.md`, `master.md`, `develop.md`. Other legacy
+  files (e.g. sanitized `feature_x.md`) are reused only with exactly one matching
+  `Branch:` header; otherwise they warn and a new canonical file is created beside them.
+  **Migration action:** for each active branch's legacy task file whose name contains `_`
+  from slash-sanitizing, add `Branch: <original branch name>` once after confirming
+  ownership, so its notes keep loading. Never infer ownership from the filename alone.
+- **Refresh context on resume:** include `resume` in the Claude Code SessionStart
+  matcher. **Migration action:** add `resume` to the existing AI-OS startup matcher if
+  missing; do not append a duplicate handler or replace unrelated hooks or a customized
+  SubagentStart matcher. The hook still reports `SessionStart`; `resume` is the input
+  source, not a new event ([reference](https://code.claude.com/docs/en/hooks#sessionstart)).
+- **Optional Codex context adapter:** `.ai-os/scripts/codex-context-hook.py` plus
+  `.ai-os-installer/templates/codex-hooks.json`, read-only, opt-in, documented in
+  `.ai-os-installer/CODEX_HOOKS.md`. **Migration action:** copy the script with the others;
+  install the hooks only if the user opts in, following `CODEX_HOOKS.md`. Not verified in a
+  live Codex session yet.
 
 ## v2.8.0 — Automatic Peer Review on Plan Execution
 
