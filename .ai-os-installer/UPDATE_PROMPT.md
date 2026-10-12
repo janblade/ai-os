@@ -166,9 +166,11 @@ automatically, so this file doesn't need editing every release.
 2. Refresh the user's `.gitignore` "AI OS Ephemeral Memory" block against the current list in `INSTALL_PROMPT.md` Step 5 — if they installed under an older installer version, they may be missing a newer ephemeral file (e.g. `last_session.json`).
 3. If this is a Claude Code host (a root `CLAUDE.md` exists, or `.claude/` does), refresh
    `.claude/settings.json` against `.ai-os-installer/templates/claude-code-hooks.json` the same
-   way as the gitignore check above — if `hooks.SessionStart` is missing the current
-   `startup|clear|compact`-matcher entry, **or `hooks.SubagentStart` is missing entirely**,
-   merge the missing entry in without touching any other hooks the user has configured. This
+   way as the gitignore check above. Find the existing AI-OS SessionStart handler by its
+   `session-start-hook.sh` command and add `resume` to that group's matcher if missing,
+   preserving its other sources. Add a new group only if that handler is absent; do not
+   duplicate it just because its old matcher lacks `resume`. Merge a missing
+   `SubagentStart` entry without changing unrelated hooks. This
    also covers upgrading an older install that only has the earlier `compact`-only
    echo-reminder version of this hook — replace that entry with the current one rather than
    leaving both, since `.ai-os/scripts/session-start-hook.sh` (the script both entries call)
@@ -178,9 +180,13 @@ automatically, so this file doesn't need editing every release.
    - The `SubagentStart` entry is new in v2.7.0 (EP-60), so every pre-existing install is
      missing it. It passes the event name as the script's first argument; the script defaults
      to `SessionStart` when called with none, so an existing `SessionStart` entry keeps working
-     unchanged and must not be rewritten.
+     unchanged; only its matcher needs the additional `resume` source.
    - If the user already narrowed their own `SubagentStart` matcher (it filters on agent type),
      leave their value alone — do not widen it back to `.*`. See `INSTALL_PROMPT.md` Step 3 for
      the token cost that motivates narrowing it.
+For Codex, update only an already-enabled AI-OS hook using [CODEX_HOOKS.md](CODEX_HOOKS.md).
+Do not enable the optional add-on during an ordinary update. Preserve unrelated hooks,
+custom matcher scope, and explicit disablement; changed definitions need host trust review.
+
 4. Do NOT delete the update source folder. Leave it intact so the user can reference it if needed.
 5. Announce to the user that the upgrade is complete, stating the old and new `ai_os_version`.

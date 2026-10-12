@@ -13,6 +13,28 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.8.0 (cont'd) - Optional collision-safe task identities
+
+- `scripts/task_identity.py --name <original-identity> --create` opts a task into a
+  readable slug plus full SHA-256 filename. Startup lookup recognizes those files.
+  BOOT and its default task-creation instructions are unchanged; this is not a global
+  migration. See [task resolver usage](../.ai-os/scripts/TASK_IDENTITY.md).
+- **Migration action:** copy the scripts together, preserving LF for shell scripts.
+  Python 3.8+ enables lookup; without it, governance still loads with a task warning.
+- Headerless legacy names that contain only letters/digits/dots/hyphens, start with a
+  letter/digit, and match the stored filename case exactly are reused unchanged. This
+  includes main.md, master.md and develop.md. A single exact Branch: header permits
+  other legacy reuse. Lossy/ambiguous names warn and remain untouched for ownership review.
+- No automatic rename/deletion, override grant, kernel edit, hook gate, or snapshot state.
+
+## v2.8.0 (cont'd) - Refresh context on resume
+
+- Include `resume` in the Claude Code SessionStart matcher. **Migration action:** add
+  `resume` to the existing AI-OS startup matcher if missing; do not append a duplicate
+  handler or replace unrelated hooks or a customized SubagentStart matcher.
+- Source: [Claude Code SessionStart reference](https://code.claude.com/docs/en/hooks#sessionstart).
+  The hook still reports `SessionStart`; `resume` is the input source, not a new event.
+
 ## v2.8.0 — Automatic Peer Review on Plan Execution
 
 - **`PLAN_EXECUTE` now runs a review pass automatically** (EP-67): `core.planning.sk` gained

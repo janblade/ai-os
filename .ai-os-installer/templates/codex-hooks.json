@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B -X utf8 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/codex-context-hook.py\" SessionStart",
+            "commandWindows": "[Console]::OutputEncoding = [Text.Encoding]::UTF8; python -B -X utf8 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/codex-context-hook.py\" SessionStart; exit $LASTEXITCODE",
+            "timeout": 15,
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B -X utf8 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/codex-context-hook.py\" SubagentStart",
+            "commandWindows": "[Console]::OutputEncoding = [Text.Encoding]::UTF8; python -B -X utf8 \"$(git rev-parse --show-toplevel)/.ai-os/scripts/codex-context-hook.py\" SubagentStart; exit $LASTEXITCODE",
+            "timeout": 15,
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ]
+  }
+}

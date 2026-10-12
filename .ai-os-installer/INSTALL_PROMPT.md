@@ -11,7 +11,7 @@ Serialize only where a step explicitly says one action must precede another (e.g
 directory must exist before something is written into it).
 
 ## 🛑 Pre-Flight Safety Check
-Before proceeding, check if the host AI environment's bridge file (e.g., `.cursor/rules/ai-os.md`, `.windsurfrules`, `.agents/AGENTS.md`) is already configured with AI OS boot instructions. If it is already configured, **STOP IMMEDIATELY**. Inform the user: *"The AI OS Framework is already installed here. Please use the UPDATE_PROMPT.md instead to prevent memory loss and duplicate rules."* Do not execute any further steps. (Fallback case: if `.ai-os/` already exists in the project but the bridge files do not — e.g. someone copied it in manually before this ran — skip Step 1's copy, it's already done, and proceed from Step 2.)
+Before proceeding, check if the host AI environment's bridge file (e.g., `.cursor/rules/ai-os.md`, `.windsurfrules`, `.agents/AGENTS.md`) is already configured with AI OS boot instructions. If it is already configured, **STOP IMMEDIATELY**. Inform the user: *"The AI OS Framework is already installed here. Please use the UPDATE_PROMPT.md instead to prevent memory loss and duplicate rules."* Do not execute any further steps. (Fallback case: if `.ai-os/` already exists in the project but the bridge files do not — e.g. someone copied it in manually before this ran — record that `.ai-os/` pre-existed, skip Step 1's copy, and proceed from Step 2. Also skip Step 4 entirely: missing bridge files do not authorize resetting existing memory, rules, or manifest settings. Use UPDATE_PROMPT.md for framework upgrades.)
 
 ## Step 1: Locate & Copy the Framework Kernel
 You are being run from wherever the user downloaded/cloned MaiKS — this file lives
@@ -44,7 +44,9 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
   ```
   followed by the `cursor-rules.md` template text. (Plain `.cursor/rules/ai-os.md` without frontmatter may not auto-load in current Cursor versions — use `.mdc`.)
 - **Windsurf:** Append to `.windsurfrules`.
-- **Claude Code:** Append to `CLAUDE.md`. Also merge **both** hook entries from
+- **Claude Code:** Append to `CLAUDE.md`. Python 3.8+ enables task-memory lookup via
+  the shared resolver; without it, the hook warns and still injects governance.
+  Also merge **both** hook entries from
   `.ai-os-installer/templates/claude-code-hooks.json` into the project's `.claude/settings.json`
   (create it with that content if missing; if it already exists, merge into its
   `hooks.SessionStart` and `hooks.SubagentStart` arrays — add each entry alongside whatever the
@@ -52,7 +54,7 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
   which injects the verbatim content of `BOOT.md` and `ultimate_rules.md` into context via
   `hookSpecificOutput.additionalContext` — stronger than a re-read reminder, since it doesn't
   depend on the agent choosing to act on the reminder afterward.
-  - `SessionStart` (`startup|clear|compact`) covers the main thread, including fresh session
+  - `SessionStart` (`startup|resume|clear|compact`) covers the main thread, including fresh session
     starts, not just compaction.
   - `SubagentStart` (matcher `.*`) covers dispatched agents, passing the event name as the
     script's first argument. They are separate hook events precisely because session context
@@ -65,6 +67,9 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
     `general-purpose|Plan` injects into agents that write or design and skips read-only search
     agents. Removing it entirely is a governance decision, not a tuning one; say so to the user
     if they ask for that.
+- **Codex (optional):** Keep the root `AGENTS.md` bridge. Offer the read-only startup
+  add-on in [CODEX_HOOKS.md](CODEX_HOOKS.md); install only if the user selects it.
+  It requires Python 3.8+ and a Codex host with the documented hooks interface.
 - **GitHub Copilot:** Append to `.github/copilot-instructions.md`.
 - **Gemini / Antigravity:** Append to `.agents/AGENTS.md` and copy `skills.json` to `.agents/skills.json`.
 - **Root `AGENTS.md`:** Also create/append to a root-level `AGENTS.md` regardless of the above — it's the emerging cross-tool convention (Codex, Jules, and others read it directly), and costs nothing extra for hosts that ignore it.
@@ -72,6 +77,8 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
 **Fallback:** If you do not have the tool capabilities to create or edit files, do not apologize. Simply print the exact text of the template into the chat in a markdown block, and ask the user to paste it into their bridge file.
 
 ## Step 4: Purge Framework Meta-Memory & Reset Manifest
+**Only for a fresh Step 1 copy into a project with no prior `.ai-os/`. If it pre-existed, skip this whole step regardless of bridge or manifest state.**
+
 Since Step 1 copied `.ai-os/` directly from the MaiKS package, it still contains memory logs and genome details from the framework's own development. This will pollute the user's new project.
 Using your file editing tools, reset the following files to prevent context pollution. Items
 1–7 each target an independent file — batch them as parallel tool calls. Items 8 and 9 both

@@ -21,8 +21,8 @@
 # sequence at all, so without this the hook re-injects governance but silently
 # drops accumulated working-context (findings, the Active plan: pointer) at
 # exactly the moment the host's own compaction is most likely to paraphrase it
-# away. Best-effort: no git repo / no task file yet / branch not sanitizable →
-# skip silently, never fail the hook over it.
+# away. Best-effort: no git repo / no task file yet →
+# skip; ambiguous legacy files warn, but never fail the hook over task lookup.
 #
 # One script, not two: the escape/emit logic below is the only copy. A second
 # script duplicating it would drift from this one, the two-copies-of-one-fact
@@ -37,18 +37,24 @@ RULES_FILE="${PROJECT_DIR}/.ai-os/rules/ultimate_rules.md"
 boot_content=$(cat "$BOOT_FILE" 2>&1 || echo "Error reading BOOT.md")
 rules_content=$(cat "$RULES_FILE" 2>&1 || echo "Error reading ultimate_rules.md")
 
-# Task file for the current branch, same sanitization as BOOT.md §2 step 4
-# (`/` and other path-unsafe chars -> `_`). Empty when there's no git repo, no
-# resolvable branch (detached HEAD), or no task file yet for it — all silent,
-# non-fatal: this is a best-effort addition, not a required boot input.
+# Shared resolver keeps branch collisions and ambiguous legacy files out of context.
+# Lookup is read-only and best-effort; errors must never suppress governance injection.
 task_content=""
-branch_name=$(cd "$PROJECT_DIR" && git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
-if [ -n "$branch_name" ] && [ "$branch_name" != "HEAD" ]; then
-    sanitized_branch=$(printf '%s' "$branch_name" | tr -c 'A-Za-z0-9._-' '_')
-    task_file="${PROJECT_DIR}/.ai-os/memory/tasks/${sanitized_branch}.md"
-    if [ -f "$task_file" ]; then
-        task_content=$(cat "$task_file" 2>/dev/null || true)
+task_relative=""
+python_command=""
+for candidate in python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import sys; sys.exit(sys.version_info < (3, 8))' >/dev/null 2>&1; then
+        python_command="$candidate"
+        break
     fi
+done
+if [ -n "$python_command" ]; then
+    task_relative=$("$python_command" -X utf8 "${PROJECT_DIR}/.ai-os/scripts/task_identity.py" --root "$PROJECT_DIR" || true)
+    if [ -n "$task_relative" ] && [ -f "${PROJECT_DIR}/${task_relative}" ]; then
+        task_content=$(cat "${PROJECT_DIR}/${task_relative}" 2>/dev/null || true)
+    fi
+else
+    printf '%s\n' 'AI-OS: Python 3.8+ unavailable; task injection skipped. Governance remains loaded.' >&2
 fi
 
 # Escape for JSON embedding via bash parameter substitution (single C-level
@@ -69,7 +75,7 @@ rules_escaped=$(escape_for_json "$rules_content")
 task_section=""
 if [ -n "$task_content" ]; then
     task_escaped=$(escape_for_json "$task_content")
-    task_section="\n\n--- .ai-os/memory/tasks/${sanitized_branch}.md ---\n${task_escaped}"
+    task_section="\n\n--- ${task_relative} ---\n${task_escaped}"
 fi
 
 context="<AI_OS_BOOT_STATE>\nThis project is governed by the AI OS Framework (MaiKS). Below is the full, verbatim content of .ai-os/BOOT.md and .ai-os/rules/ultimate_rules.md, injected directly so boot state is present from the first message without depending on a manual re-read: on session start it survives /clear and compaction, and on subagent spawn it supplies governance the parent thread does not pass down. You are bound by these rules for the whole of this thread, dispatched work included. When present below, the active branch's task file is included too, so a mid-session compaction doesn't silently drop accumulated working-context.\n\n--- .ai-os/BOOT.md ---\n${boot_escaped}\n\n--- .ai-os/rules/ultimate_rules.md ---\n${rules_escaped}${task_section}\n</AI_OS_BOOT_STATE>"

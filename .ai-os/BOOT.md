@@ -50,16 +50,19 @@ Every session, cheap by design:
    - `manifest.json.project_name` empty → `kernel/bootstrap.md` (First-Boot) instead.
 3. MEMORY CONTINUITY (O(1)): read `memory/episodic/last_session.json` — one-entry
    summary, not the full log.
-4. TASK MEMORY — always one open. Run `git rev-parse --abbrev-ref HEAD`.
-   - Real branch → sanitize (`/` and path-unsafe chars → `_`; `feature/oauth-fix` →
-     `feature_oauth-fix`) → load/create `memory/tasks/[sanitized_name].md`. Includes
+4. TASK MEMORY — always one open. Resolve with `python .ai-os/scripts/task_identity.py --create`
+   (Python 3.8+; usage in `scripts/TASK_IDENTITY.md`). It prints the task path.
+   - Real branch → the helper keys the file on the exact branch name (readable slug + full
+     SHA-256), so `feature/a_b` and `feature_a/b` never share a file. Includes
      `main`/`master`/`develop`/`release/*` — no branch skips this; §9 covers how
-     protected-branch files differ from ticket-branch ones.
+     protected-branch files differ from ticket-branch ones. Existing lossless legacy names
+     (e.g. `main.md`) are reused in place; ambiguous legacy files warn and are left untouched.
    - No deterministic identity (detached `HEAD`, no git repo, etc.) → check
      `memory/tasks/` for an existing open task, use it if clearly active. None → ASK the
-     user what they're working on before creating `memory/tasks/[name].md`. Always ask;
-     never invent a name, never silently skip. Skip asking only if user already named it
-     this conversation.
+     user what they're working on, then pass it as `--name`. Always ask; never invent a
+     name, never silently skip. Skip asking only if user already named it this conversation.
+   - Python unavailable → use a clearly identified existing task and say the helper is
+     missing; do not guess a new filename. Governance loading continues normally.
    - Stray host-native plan file present (`task.md`, `implementation_plan.md`,
      `walkthrough.md`, or similar, outside `.ai-os/`) → some hosts force these via their own
      planning-mode hook regardless of instruction. Don't ignore or delete silently: ask the

@@ -36,6 +36,15 @@ sink pattern worth remembering) follows the same steps 2/2a/4 here rather than w
 directly — a mechanically-derived fact still needs the accept gate, since the *distillation*
 of what's worth keeping is a judgment call even when the underlying data is accurate.
 
+## Optional task identities
+
+For tasks explicitly created with `scripts/task_identity.py --create`, resolve the
+original identity with that helper before TASK_CLOSE or MEMORY_CONSOLIDATE instead of
+reconstructing its hashed filename. See [usage](../../scripts/TASK_IDENTITY.md).
+Keep Task-ID:/Branch: headers when draining these files. Do not reverse hashes or archive
+unidentified legacy notes automatically; ownership requires review. Existing BOOT behavior
+and semantic verification/acceptance policy remain unchanged.
+
 ## Dependencies
 
 - `observability.sk` — decision logging
