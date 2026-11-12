@@ -36,15 +36,21 @@ Assemble optimal context for a task.
 ```
 
 **Procedure:**
-1. Parse the task description to identify key topics, files, and domains
-2. Check model tier. If reasoning tier model with massive context (>1M tokens) is active: enable **Massive Context Strategy** and skip aggressive pruning. Load full workspace modules.
-3. Score available context sources by relevance (see CONTEXT_SCORE)
-4. Assemble context in priority order (see priority list below)
-5. Keep a rough running sense of how much you've loaded (character count / 4 ≈ tokens);
+1. Parse the task description to identify key topics, files, and domains. If the task has
+   more than one part, split it into the sub-questions that each need their own evidence
+2. Score available context sources by relevance (see CONTEXT_SCORE) — per sub-question,
+   not against the whole task as one blended description
+3. Assemble context in priority order (see priority list below)
+4. Keep a rough running sense of how much you've loaded (character count / 4 ≈ tokens);
    this is an estimate for your own judgment, not a precise budget you're enforcing
-6. Stop adding low-relevance context once you have enough to answer confidently — don't
+5. Stop adding low-relevance context once you have enough to answer confidently — don't
    keep loading "just in case"
-7. Report: "Context loaded: {items_count} sources, roughly {tokens} tokens"
+6. Report: "Context loaded: {items_count} sources, roughly {tokens} tokens"
+7. **Go back for gaps.** Loading is not one-shot. If, mid-task, a fact you need turns out
+   not to be in what you loaded, name the gap and read the specific source for it — don't
+   fill it from assumption (R21). A large context window doesn't change any of the above:
+   material buried in a long context is still easy to lose, so load selectively at every
+   window size
 
 **Priority order for context assembly:**
 1. **Task-critical files** — Files directly mentioned or clearly needed for the task
@@ -115,7 +121,6 @@ Remove low-value context to make room for high-value information.
 5. *(Never prune)* Task-critical files and active code
 
 If `--aggressive`: Prune up to 50% of context. Normal mode prunes ~20%.
-*Note: If Massive Context Strategy is active, bypass pruning unless token budget explicitly exhausted.*
 
 **Output:** "Pruned {count} items, freed ~{tokens} tokens. New budget: {remaining}%"
 

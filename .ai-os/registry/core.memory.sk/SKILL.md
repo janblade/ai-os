@@ -178,9 +178,16 @@ The promotion pipeline (`TASK_CLOSE`/`MEMORY_CONSOLIDATE`) only ever adds to sem
 memory or deletes something a *new* fact supersedes. Neither one revisits an existing entry
 just because it turned out to be wrong — there is no other trigger that does either, so a
 bad promotion just sits there, permanently trusted, until this command is run against it.
-Two triggers: `BOOT.md` §7's memory-traced debugging (a bug's root cause traced back to a
-knowledge-file entry), or a direct human report ("that convention is wrong," "the docs are
-outdated on this").
+Three triggers: `BOOT.md` §7's memory-traced debugging (a bug's root cause traced back to a
+knowledge-file entry), a direct human report ("that convention is wrong," "the docs are
+outdated on this"), or a **conflict noticed on read** — during ordinary work you read a
+`knowledge/*.md` entry that contradicts what the repo's current code/config shows.
+
+**Conflict noticed on read — precedence:** current repo state wins for the task in hand;
+act on what the code shows, not on the entry. Say so in the response, naming the entry.
+Then run this command against that entry — don't leave it for the next session to trip
+over, and don't silently edit it inline (the verify step and accept gate below still apply:
+the code may be the thing that's wrong, and that's a finding to surface, not to assume).
 
 **Procedure:**
 1. **Identify the specific claim** being challenged — not the whole file, the specific

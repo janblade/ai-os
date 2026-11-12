@@ -209,6 +209,9 @@ load when diagnosing a failure. Always active:
 - MEMORY-TRACED DEBUGGING: root cause traces to a `knowledge/*.md` entry (wrong, or
   true-but-caused-the-bug) → code fix alone isn't enough, the entry is still trusted
   ground truth elsewhere. Run `MEMORY_AMEND` too.
+- MEMORY CONFLICT ON READ: a `knowledge/*.md` entry contradicts current code/config →
+  repo state wins for the task, name the entry in the response, run `MEMORY_AMEND` on it
+  (`core.memory.sk`) — don't silently follow it or silently work around it.
 
 ---
 

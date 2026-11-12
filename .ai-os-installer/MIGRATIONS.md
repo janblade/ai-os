@@ -44,6 +44,22 @@ would corrupt a little more on each pass.
   install the hooks only if the user opts in, following `CODEX_HOOKS.md`. Not verified in a
   live Codex session yet.
 
+## v2.9.0 (cont'd) — Read-Time Memory Conflicts, Iterative Context Loading
+
+- **`MEMORY_AMEND` gains a third trigger** (EP-81): a `knowledge/*.md` entry that
+  contradicts the repo's current code/config, noticed during ordinary work. Current repo
+  state wins for the task; the agent names the entry and runs `MEMORY_AMEND` on it.
+  Text-only change in `registry/core.memory.sk/SKILL.md`.
+- **`CONTEXT_LOAD` is no longer one-shot** (EP-82): multi-part tasks are split into
+  sub-questions and sources scored per sub-question; a new closing step sends the agent
+  back for a specific source when a needed fact turns out not to be loaded. The "Massive
+  Context Strategy" branch (load whole modules, skip pruning on >1M-token windows) is
+  removed from `CONTEXT_LOAD` and `CONTEXT_PRUNE` — selective loading applies at every
+  window size. Text-only change in `registry/core.context-engine.sk/SKILL.md`.
+- **Migration action:** none beyond `UPDATE_PROMPT.md` Step 3's standard core-skill
+  refresh — ensure the installed `core.memory.sk/SKILL.md` and
+  `core.context-engine.sk/SKILL.md` match the update source.
+
 ## v2.8.0 — Automatic Peer Review on Plan Execution
 
 - **`PLAN_EXECUTE` now runs a review pass automatically** (EP-67): `core.planning.sk` gained
