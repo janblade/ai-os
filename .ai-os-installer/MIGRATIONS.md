@@ -13,6 +13,47 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.9.2 — Issue fixes: precedence, rolling drain, stock refresh, reproduce-first, pointer triggers, TDD slicing
+
+Fixes for public `ai-os` issues #1, #4, #5, #6, #7.
+
+- **Precedence restated** (EP-85, kernel): `BOOT.md` §3 and the `ultimate_rules.md` header
+  rank host/platform instructions above the framework and describe the rules as project
+  policy the user adopted. A conflicting user request is surfaced and, on explicit
+  confirmation, becomes a logged one-action exception; BLOCKING rules and kernel edits are
+  unchanged. Archetype descriptions (`hobby`, `startup`) no longer imply R1 is optional;
+  `genome/archetypes/index.json` notes that `security_scans` is unenforced.
+  **Migration action:** none — `UPDATE_PROMPT.md` Step 3 copies kernel files.
+- **Rolling task drain keeps unresolved notes** (EP-85): `MEMORY_CONSOLIDATE` removes only
+  promoted/resolved entries from a protected branch's task file, never the whole file.
+  `TASK_CLOSE`, the orphan sweep and `INFRA_WORKTREE_START` resolve names through
+  `task_identity.py` instead of `/` → `_`. **Migration action:** none beyond the standard
+  core-skill refresh.
+- **Hook JSON escaping** (EP-85): `session-start-hook.sh` now escapes every C0 control
+  character, not only newline, carriage return and tab. **Migration action:** none —
+  Step 3 overwrites `scripts/`.
+- **Updater knowledge-split condition** (EP-85): `UPDATE_PROMPT.md` Step 2 sub-step 3 now
+  decides from `project_knowledge.md`'s content, not from `knowledge/` being absent
+  (sub-step 1 always creates it). **Migration action:** for an install updated earlier
+  whose `project_knowledge.md` still holds full sections rather than an index, run sub-step
+  3 now.
+- **Stock playbooks/workflows refresh** (EP-86): stock playbooks carry
+  `<!-- ai-os-stock: <id> -->`; stock workflows carry `"stock": true`. **Migration action:**
+  `UPDATE_PROMPT.md` Step 2 item 5 — add missing stock entries, ask before replacing a
+  differing one, never touch the user's own. Idempotent: identical entries are skipped.
+- **Reproduce-first diagnosis loop** (EP-87): new section in `core.self-healing.sk`, wired
+  into `HEAL_DIAGNOSE` step 3 and the stock Bug Fix playbook (steps 1, 3, 5, 6).
+  **Migration action:** none beyond the core-skill refresh and Step 2 item 5.
+- **Skill-pointer descriptions** (EP-88): `registry/index.json` (schema 2.1.0) gains an
+  optional `pointer_description` per skill; pointers use it (fallback `description`) and
+  list `backs_builtin_commands` too. **Migration action:** merge the new field into the
+  user's `registry/index.json` for core skills; `UPDATE_PROMPT.md` Step 5 item 3 then
+  regenerates the pointers because their content differs.
+- **TDD/planning guards** (EP-89): `core.testing.sk` anti-patterns 4 (tautological
+  assertions) and 5 (horizontal slicing); `PLAN_WRITE` step 4 requires vertical slices and
+  expand → migrate → contract for wide changes; stock `vertical-slice-plan` workflow.
+  **Migration action:** the workflow arrives through Step 2 item 5.
+
 ## v2.9.1 — Read-Time Memory Conflicts, Iterative Context Loading, Host Permission Gate, Native Skill Pointers
 
 - **`MEMORY_AMEND` gains a third trigger** (EP-81): a `knowledge/*.md` entry that

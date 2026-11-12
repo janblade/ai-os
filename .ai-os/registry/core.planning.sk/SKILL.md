@@ -101,6 +101,14 @@ Turn a clarified feature into a concrete, ordered implementation plan.
    criteria + steps (epic). Each step must be concrete enough that a literal-minded
    executor doesn't need to re-derive intent — name specific files/functions where already
    known, not just "update the backend."
+   **Slice vertically.** Each behavior-changing step goes end to end through the layers it
+   touches (schema → logic → API → UI as needed) and is verifiable on its own; never "all
+   migrations, then all endpoints, then all UI", which leaves nothing testable until the
+   last step. **Wide mechanical changes** that can't land as one green slice (rename a
+   column, retype a shared symbol, swap a library) go *expand → migrate → contract*: add the
+   new form beside the old, move call sites over in batches with the build and tests green
+   after each batch, then remove the old form. The stock `vertical-slice-plan` workflow in
+   `workflows.json` is this decomposition as a reusable starting point.
 5. For each step that changes behavior, note how it gets verified (which test, which
    manual check) — ties directly into `core.testing.sk`'s TDD discipline: a step that adds
    behavior should name the test that proves it, written before the implementation. For an
@@ -121,7 +129,7 @@ Turn a clarified feature into a concrete, ordered implementation plan.
    **Flat plan:**
    ```markdown
    # Plan: <one-line title>
-   - Branch: <sanitized branch name, or "none">
+   - Branch: <exact branch name, or "none">
    - Created: <YYYY-MM-DD>
    - Status: approved          # draft | approved | in-progress | done | abandoned
    - Task file: memory/tasks/<name>.md

@@ -34,6 +34,8 @@ It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,000 to
 
 Net effect: boot costs roughly **4,500–5,000 tokens** (the task file's size is the one variable component) regardless of how much governance content the framework has accumulated, since new rules and skills live in files that are opt-in by trigger, not opt-out by size. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
 
+**Exception — the Claude Code hook path.** That figure is the lazy-read path every host follows. On Claude Code the installed `SessionStart`/`SubagentStart` hook injects the full text of `BOOT.md` *and* `rules/ultimate_rules.md` unconditionally (about 31 KB combined at v2.9.2, so roughly **7,500–8,000 tokens** by the same characters-÷-4 estimate — a heuristic, not a tokenizer count), plus the task file. It does this again for **every dispatched subagent**, because subagents inherit none of the parent's context. That is the price of governance being present without relying on the agent to re-read it; if it matters more than that guarantee for your project, remove the `SubagentStart` entry from `.claude/settings.json`.
+
 ---
 
 ## System Structure
@@ -289,4 +291,4 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 
 ---
 
-*MaiKS v2.9.1*
+*MaiKS v2.9.2*

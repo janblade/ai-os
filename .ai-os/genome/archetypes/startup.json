@@ -16,5 +16,5 @@
     "R10": "warning",
     "R15": "production-deploys-only"
   },
-  "description": "Balanced governance for production-bound projects. Security scans run before commits. The agent can evolve skills freely but needs approval for deployments and destructive actions."
+  "description": "Balanced governance for production-bound projects. R1's pre-mutation security review applies to every change; an extra scan is suggested before commits. The agent can evolve skills freely but needs approval for deployments and destructive actions."
 }

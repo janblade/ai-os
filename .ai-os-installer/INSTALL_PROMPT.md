@@ -84,8 +84,13 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
     `.ai-os-installer/templates/skill-pointer.md`. `<slug>` = the skill `id` minus its
     trailing `.sk`, lowercased, every character outside `a-z0-9` replaced by `-`, runs of `-`
     collapsed (`core.memory.sk` → `ai-os-core-memory`); the frontmatter `name` must equal the
-    directory name. Fill `{description}` and `{commands}` from that registry entry (keep the
-    whole description under 1024 characters) and `{id}` with the unmodified skill id. These
+    directory name. Fill `{pointer_description}` from that registry entry's
+    `pointer_description`, falling back to its `description` when absent (custom skills);
+    fill `{commands}` with its `commands` followed by its `backs_builtin_commands`, if any
+    (EP-88 — the skill behind `TASK_CLOSE` must advertise `TASK_CLOSE`). Keep the whole
+    description under 1024 characters. The host decides from this text alone whether to
+    load the skill, so it has to name the situations that call for it, not just what the
+    skill is and `{id}` with the unmodified skill id. These
     are pointers, not copies — the body only tells the agent to read the registry `SKILL.md`,
     so there is nothing to drift. Never overwrite an existing skill directory that lacks the
     template's `ai-os-pointer` marker line; that one is the user's own. Cost: one short

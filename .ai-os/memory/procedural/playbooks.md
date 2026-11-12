@@ -7,10 +7,16 @@
 > installs the framework) is marked `**Project-only**` on the line directly under its
 > `## Playbook:` heading. `INSTALL_PROMPT.md` Step 4 strips any such section on fresh
 > install — same treatment `RELEASE`/`EVOLVE_BENCHMARK` already get as commands (EP-75).
+>
+> A playbook shipped with the framework carries `<!-- ai-os-stock: <id> -->` on the line
+> under its heading. `UPDATE_PROMPT.md` Step 2 uses it to offer newer stock text on
+> upgrade; edit a stock playbook freely, and the updater asks before replacing your
+> version. Playbooks you add yourself have no marker and are never touched.
 
 ---
 
 ## Playbook: New Feature Development
+<!-- ai-os-stock: new-feature -->
 
 ### When to Use
 User requests a new feature, capability, or component inside an existing project.
@@ -39,24 +45,31 @@ User requests a new feature, capability, or component inside an existing project
 ---
 
 ## Playbook: Bug Fix
+<!-- ai-os-stock: bug-fix -->
 
 ### When to Use
 User reports a bug, error, or unexpected behavior.
 
 ### Steps
-1. **Reproduce**: Understand the exact failure condition.
+1. **Reproduce**: Get a red command — one command that drives the real code path and
+   fails with the user's exact symptom — and run it once. No theory about the cause yet
+   (`core.self-healing.sk` Reproduce-First Diagnosis Loop, phase 1).
 2. **Check for a known fix**: Run `HEAL_DIAGNOSE` — its first step checks this file for a
    playbook matching the symptom before diagnosing from scratch. A match short-circuits
    straight to applying it.
 3. **Diagnose**: No match → check `git diff` for the session's own recent mutations
-   first (regressions are usually the most recent change), then trace the code for the
-   root cause.
+   first (regressions are usually the most recent change). Not there → run the rest of
+   the Reproduce-First Diagnosis Loop: shrink the case, rank 3-5 falsifiable hypotheses,
+   test one variable at a time with tagged debug output.
 4. **Root Cause**: Identify the root cause, not just the symptom (R24). If it traces to a
    `knowledge/*.md` entry that's wrong or true-but-harmful, run `MEMORY_AMEND` too — a
    code fix alone leaves the entry trusted elsewhere.
-5. **Fix**: Implement the minimal correct fix, applying the Simplicity Ladder.
-6. **Test**: Write a regression test that would have caught the bug (`TEST_GENERATE` /
-   `TEST_RUN`); use `TEST_IMPACT` to scope which other tests are actually affected.
+5. **Test first**: Write the regression test before the fix, at a seam that exercises the
+   real bug, and watch it fail (`TEST_GENERATE` / `TEST_RUN`). No such seam → say so
+   rather than writing a test that passes either way.
+6. **Fix**: Implement the minimal correct fix, applying the Simplicity Ladder. Then the
+   cleanup gate: debug tag greps to zero, red command and regression test pass, and
+   `TEST_IMPACT`'s scope is green.
 7. **Verify**: Run the Verification-Before-Completion Protocol before reporting the fix
    done — "I read the diff and it looks right" doesn't count.
 8. **Document**: If this took genuine diagnosis (not an obvious one-liner), offer to save
@@ -67,6 +80,7 @@ User reports a bug, error, or unexpected behavior.
 ---
 
 ## Playbook: Dependency Update
+<!-- ai-os-stock: dependency-update -->
 
 ### When to Use
 Updating, adding, or removing project dependencies.
@@ -83,6 +97,7 @@ Updating, adding, or removing project dependencies.
 ---
 
 ## Playbook: Incident Response
+<!-- ai-os-stock: incident-response -->
 
 ### When to Use
 Something has gone wrong in production or a critical failure has occurred.
@@ -102,6 +117,7 @@ Something has gone wrong in production or a critical failure has occurred.
 ---
 
 ## Playbook: Project Onboarding (New Contributor/Agent)
+<!-- ai-os-stock: project-onboarding -->
 
 ### When to Use
 First boot on an existing project, or onboarding a new team member.
@@ -118,6 +134,7 @@ First boot on an existing project, or onboarding a new team member.
 ---
 
 ## Playbook: Self-Evolution
+<!-- ai-os-stock: self-evolution -->
 
 ### When to Use
 The agent identifies a way to improve its own skills, commands, or workflows.

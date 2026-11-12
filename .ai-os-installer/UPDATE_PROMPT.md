@@ -17,7 +17,8 @@ Ask the user for the path to the newly downloaded MaiKS update folder (e.g., `./
 You **MUST NOT** overwrite, delete, or lose the user's existing memory file contents (such as `project_knowledge.md`, `decisions.jsonl`, `sessions.jsonl`, and custom task logs). However, you **MUST** ensure the memory layout is migrated to the new four-tier directory structure. Sub-steps 1 and 2 are each a batch of independent filesystem operations (different directories/files, no ordering between entries within a sub-step) — do each sub-step's items in one parallel pass, not one directory or file at a time; only sub-step 2's moves must wait on sub-step 1's directories existing.
 1. Ensure all new memory subdirectories exist in the user's active `.ai-os/memory/`:
    - `semantic/`
-   - `semantic/knowledge/`
+   - `semantic/knowledge/` (creating it here does not mean sub-step 3 is done — sub-step 3
+     decides from the content of `project_knowledge.md`, not from this directory existing)
    - `semantic/generated/` (regenerable caches, e.g. `INFRA_MAP_DATAFLOW`'s dataflow map —
      self-creates on first write either way, but ensure it exists for consistency)
    - `episodic/`
@@ -32,13 +33,38 @@ You **MUST NOT** overwrite, delete, or lose the user's existing memory file cont
    - Move `workflows.json` and `playbooks.md` to `.ai-os/memory/procedural/`
    - Move any task files (e.g., `JIRA-*.md`) to `.ai-os/memory/tasks/`
 3. **Indexed Semantic Knowledge Segregation**:
-   If the user has a monolithic `project_knowledge.md` (without a `.ai-os/memory/semantic/knowledge/` directory):
-   - Create `.ai-os/memory/semantic/knowledge/`.
+   If the user's `project_knowledge.md` is monolithic — it holds knowledge sections itself
+   instead of being an index whose entries link to `knowledge/*.md` files that exist. Judge
+   by the file's content: sub-step 1 has already created `knowledge/`, so whether that
+   directory exists says nothing about the old layout. An empty `knowledge/` plus a
+   `project_knowledge.md` with real sections is exactly the case to migrate.
+   - `knowledge/` exists from sub-step 1; if it already holds files, keep them and add
+     alongside — never overwrite an existing sub-file.
    - Read the user's existing `project_knowledge.md` and parse its sections.
    - Write their section contents into specialized files under `knowledge/` (e.g., `architecture_overview.md`, `conventions_patterns.md`, `known_gotchas.md`, or custom category files based on their headers).
    - Rewrite their `.ai-os/memory/semantic/project_knowledge.md` as an index document linking to those sub-files so all their existing knowledge is preserved and properly segregated.
 4. Copy any default templates or placeholder files (like `.keep` files, default `patterns.json`, etc.) from the update source's `memory/` folder ONLY if the user does not already have an existing version of that file. If this is copying `playbooks.md` or `workflows.json` in specifically because the user's install is missing it, strip any project-only content from the copy first, same as `INSTALL_PROMPT.md` Step 4 item 10 (EP-75): drop any `## Playbook:` section marked `**Project-only**`, and any `workflows.json` entry with `"project_only": true`. Every other install already has its own copy and is untouched by this step regardless.
-5. If missing, create `.ai-os/memory/episodic/last_session.json` (seed it from the last entry in the user's existing `sessions.jsonl`, or a null placeholder if empty).
+5. **Refresh stock procedural entries** (EP-86). `playbooks.md` and `workflows.json` mix
+   framework defaults with what the project learned, so item 4's copy-if-missing rule alone
+   would leave an install on the first stock text it ever received. Run this after item 4,
+   against the user's copies:
+   - **Stock entries in the update source**: each `## Playbook:` section carrying
+     `<!-- ai-os-stock: <id> -->` on the line under its heading, and each workflow with
+     `"stock": true`. Skip anything marked `**Project-only**` / `"project_only": true`.
+   - **Match** each one to the user's entry with the same stock id (playbooks) or `id`
+     (workflows). Installs from before v2.9.2 have no markers: fall back to the exact
+     `## Playbook: <name>` heading, and add the marker to the user's section once matched.
+   - **Identical** apart from whitespace and the marker line → nothing to do.
+   - **Missing** from the user's file → add it (playbooks: before the closing italic
+     footer line; workflows: append to `workflows`). Report what was added.
+   - **Different** → don't overwrite. Collect every differing entry, then ask once: for
+     each, show a short diff and offer *take the new stock text*, *keep mine*, or *merge*
+     (you draft, user confirms). Anything the user doesn't decide is kept. When replacing a
+     workflow, carry over the user's `success_count` and `last_used`.
+   - **Never touch** an entry with no stock counterpart (the user's own), and never delete a
+     stock entry the source no longer ships — report it instead.
+   - Report three lists: added, replaced, kept-as-is (with the reason, e.g. "user-edited").
+6. If missing, create `.ai-os/memory/episodic/last_session.json` (seed it from the last entry in the user's existing `sessions.jsonl`, or a null placeholder if empty).
 
 ## Step 3: Perform the Upgrade
 

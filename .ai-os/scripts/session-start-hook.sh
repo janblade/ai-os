@@ -66,6 +66,16 @@ escape_for_json() {
     s="${s//$'\n'/\\n}"
     s="${s//$'\r'/\\r}"
     s="${s//$'\t'/\\t}"
+    s="${s//$'\b'/\\b}"
+    s="${s//$'\f'/\\f}"
+    # Every other C0 control character is also illegal raw in a JSON string
+    # (RFC 8259 §7). NUL can't occur in a bash variable, so 1-31 covers the set.
+    local code ch hex
+    for code in 1 2 3 4 5 6 7 11 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31; do
+        printf -v hex '%02x' "$code"
+        printf -v ch "\\x${hex}"
+        [[ "$s" == *"$ch"* ]] && s="${s//"$ch"/\\u00${hex}}"
+    done
     printf '%s' "$s"
 }
 

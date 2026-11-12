@@ -23,5 +23,5 @@
     "R17": "warning",
     "R18": "disabled"
   },
-  "description": "Minimal friction for personal projects and learning. Security scans are available but not mandatory for every change. The agent has maximum autonomy to move fast."
+  "description": "Minimal friction for personal projects and learning. R1's pre-mutation security review still applies to every change; extra full scans (SECURITY_AUDIT) run on demand only. The agent has maximum autonomy to move fast."
 }

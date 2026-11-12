@@ -39,8 +39,12 @@ Diagnose system issues.
    message, stack trace, or failing command). Match → follow its `### Steps` directly,
    tell the user which playbook matched and why, then skip to step 4. No match → continue.
 2. **Framework Diagnosis:** Review `ultimate_rules.md` and `BOOT.md` to ensure you haven't violated any governance constraints.
-3. **Project Diagnosis:** Run tests or builds to identify the root cause of the current failure.
-4. **Report Findings:** Clearly explain the root cause of the failure to the user before attempting a fix.
+3. **Project Diagnosis:** check `git diff` for recent mutations first (R24). If that
+   doesn't show the cause, run the Reproduce-First Diagnosis Loop below — no theory about
+   the cause before its phase 1 exit condition holds.
+4. **Report Findings:** Clearly explain the root cause of the failure to the user before
+   attempting a fix, with its R24 confidence (High needs the loop's red command to have
+   reproduced it).
 
 ---
 
@@ -239,6 +243,42 @@ If verification fails or can't be completed (no test framework detected, build t
 unavailable, etc.), report the task as **not yet verified**, not as done — and say what
 specifically wasn't checked. Don't downgrade this to a caveat buried after a "completed"
 headline.
+
+---
+
+## Reproduce-First Diagnosis Loop
+
+The procedure behind R24 when the diff doesn't show the cause. The failure it prevents:
+read code, guess a cause, patch it, and call the symptom gone. Each phase has an exit
+condition you can check; don't move on until it holds.
+
+1. **Red command first.** Build one command that drives the real code path and asserts the
+   user's exact symptom — a test, an HTTP/CLI script, a fixture diff, a replayed payload —
+   and run it once and watch it fail. *Exit:* it exists and is red for the reported reason.
+   No hypothesis before this. Can't build one → say what you tried and ask for access, logs,
+   or a captured artifact; don't proceed on a guess.
+2. **Confirm and shrink.** Check the failure is the reported one, not a nearby one (same
+   error, same place, same input class). Cut inputs and steps until removing anything more
+   turns it green. Flaky → raise the reproduction rate (loop it, pin the seed, fix the
+   clock) before going on. *Exit:* a minimal case that fails every run, or a stated rate.
+3. **Ranked, falsifiable hypotheses.** Write 3-5 candidate causes, most likely first, each
+   with the observation that would *disprove* it. This is what R24's High/Medium/Low gate
+   grades. *Exit:* the list exists before any instrumentation.
+4. **One variable at a time.** Test the top hypothesis with the smallest probe that can
+   falsify it. Debug output carries one unique tag (e.g. `DBG-<short-id>`) so cleanup is a
+   single grep. Disproved → next hypothesis; all disproved → back to phase 3 with what you
+   learned; a second full round with nothing surviving → stop and escalate, as Loop
+   Detection below does for repeated fixes. *Exit:* one hypothesis
+   survives and the others are ruled out by evidence, not preference.
+5. **Regression test before the fix**, at a seam that exercises the real bug (the red
+   command often becomes it). It must fail now. No such seam → report that as a finding;
+   don't write a shallow test that passes either way (`core.testing.sk` anti-patterns).
+6. **Fix, then cleanup gate.** Minimal fix (Simplicity Ladder). Done only when the tag
+   greps to zero, the red command and regression test pass, and `TEST_IMPACT`'s scope is
+   green — then the Verification-Before-Completion Protocol below.
+
+Scale it to the bug: an obvious one-liner whose diff already shows the cause skips to
+phase 5. Phase 1 is never skipped when the cause isn't already known.
 
 ---
 

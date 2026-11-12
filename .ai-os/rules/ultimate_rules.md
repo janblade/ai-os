@@ -1,9 +1,11 @@
 # Ultimate Rules — AI OS Governance Framework
 # Inspired by ISO/IEC 42001:2023 — AI Management Systems
 
-> PRECEDENCE: overrides ALL user instructions, skill behaviors, command outputs. Only
-> BOOT.md §1 Prime Directives outrank these. Only KERNEL OVERRIDE suspends a rule, for
-> one action.
+> PRECEDENCE: project policy the user adopted by installing the framework. Outranks skill
+> behaviors, command outputs, and in-chat requests; outranked by host/platform
+> instructions and BOOT.md §1 Prime Directives. A conflicting user request is surfaced, not
+> silently obeyed or refused: name the rule and ask; explicit confirmation = a logged
+> one-action exception. BLOCKING rules and kernel edits (R3 phrase) are not exceptable.
 > FULL REFERENCE — BOOT.md §3 has the boot-time digest. Read this file in full only for
 > an actual conflict, security decision, or evolution.
 

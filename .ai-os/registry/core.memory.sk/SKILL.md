@@ -63,10 +63,13 @@ the current branch/task, confirm with the user before touching that file — don
 archive a task that isn't the one you're on.
 
 **Procedure:**
-1. **Resolve the task file.** Derive the filename the same way it was created (see
-   `BOOT.md` §2 step 4's sanitization rule): slashes and other path-unsafe characters in
-   the branch name become `_`, so `feature/oauth-fix` → `tasks/feature_oauth-fix.md`, not
-   a nested path. For an ad-hoc task (no git identity), use the name it was opened under.
+1. **Resolve the task file** with the same helper that created it (`BOOT.md` §2 step 4):
+   `python .ai-os/scripts/task_identity.py --name <branch>` — read-only without `--create`;
+   it prints the path. Never re-derive the name by replacing `/` with `_` — that mapping is
+   not collision-safe (`feature/a` and `feature_a` both become `feature_a.md`), which is why
+   the helper keys on the exact name plus its SHA-256. For an ad-hoc task (no git identity),
+   pass the name it was opened under. Python unavailable → use the file whose `Branch:`
+   header matches the branch exactly; none or several → ask, don't guess.
 2. **Verify facts before promoting.** For each candidate "confirmed truth" in the task
    file, re-check it against the actual current repo state (read the file, grep the
    symbol, run the check) before writing it to semantic memory — don't promote a claim
@@ -138,16 +141,20 @@ note. Four additions specific to this command:
 skip straight to a permanent tier). Ticket branches close theirs explicitly via
 `TASK_CLOSE`. Protected branches never get a "done" event, so their task file is treated as
 *rolling*: on every `MEMORY_CONSOLIDATE`, run `TASK_CLOSE` steps 2/2a/3/4 against it, then
-clear it back to empty (don't move it to `archived_tasks/` — it isn't a finished ticket,
-it's ongoing scratch space that just got drained). If nothing in it passes the accept gate
-yet, leave it as-is and don't force a promotion.
+remove **only the entries that were promoted or are otherwise resolved** (don't move the
+file to `archived_tasks/` — it isn't a finished ticket, it's ongoing scratch space). Keep
+everything else in place: items that failed step 2 or 2a, items with an unresolved-problem
+marker, rejected promotion candidates, open questions, any `Active plan:` pointer, and the
+file's identity header (`Branch:` line). The file is never cleared wholesale — "drained"
+means the promotable part left, not that the file is empty. If nothing passes the accept
+gate, leave it unchanged and don't force a promotion.
 
 **Orphan sweep** (run every time this executes, cheap): list `tasks/*.md` and compare
 against `git branch -a`. Any task file whose branch no longer exists locally or remotely is
 orphaned — move it to `archived_tasks/` with a one-line note ("orphaned — branch deleted
 without TASK_CLOSE") rather than leaving it to accumulate untouched. Ad-hoc task files (no
-matching branch by design) aren't orphans by this check — match them against the sanitized
-name they were opened under instead; only flag one as stale if it hasn't been touched in a
+matching branch by design) aren't orphans by this check — match them against the name they
+were opened under instead (the `Branch:`/identity header, not a reversed filename slug); only flag one as stale if it hasn't been touched in a
 long time and no session has referenced it. Do not attempt to extract semantic truths from
 an orphaned file automatically — an abandoned branch's working notes may describe a design
 that was rejected, not confirmed; surface it to the user instead if it looks substantive.

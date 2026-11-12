@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
   "description": "Project archetype profiles that tune governance settings proportional to project risk level.",
+  "_security_scans_note": "governance.security_scans names when ADDITIONAL scans (SECURITY_AUDIT, SECURITY_CHECK_DEPS) are suggested. Nothing reads or enforces it. It is not R1: the pre-mutation security review is mandatory at every archetype and has no override.",
   "available_archetypes": [
     {
       "id": "hobby",

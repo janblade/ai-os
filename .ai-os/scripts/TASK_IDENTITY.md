@@ -17,11 +17,12 @@ Names with underscores, slash substitutions, or case mismatches need one exact B
 header to establish ownership. Ambiguous files warn, remain untouched, and require review;
 never automatically move, delete, or attribute their notes to another task.
 
-BOOT and its default filename instructions are unchanged. This is an opt-in tool, not a
-framework-wide migration: use the returned path consistently for an opted-in task. The
-startup hook recognizes canonical and safe legacy files. Until the owner approves any
-BOOT integration, ordinary boot flows on other hosts can still create sanitized filenames.
-No claim of universal collision prevention or repository-owner authorization is made.
+`BOOT.md` §2 step 4 (since v2.9.0) and `TASK_CLOSE`, `MEMORY_CONSOLIDATE` and
+`INFRA_WORKTREE_START` all resolve task identity through this helper, so use the returned
+path everywhere. The startup hook recognizes canonical and safe legacy files. Without
+Python, those procedures fall back to an exact `Branch:` header match and ask when it is
+missing or ambiguous; a host that ignores them can still create sanitized filenames, so no
+claim of universal collision prevention is made.
 
 Keep identity headers when draining canonical tasks; do not infer ownership by reversing a
 slug/hash. Creation is exclusive and lookup errors do not block startup governance. No

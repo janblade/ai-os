@@ -1,6 +1,52 @@
 {
   "version": "1.0.0",
-  "workflows": [],
+  "workflows": [
+    {
+      "id": "vertical-slice-plan",
+      "name": "Vertical-slice feature plan",
+      "description": "Decompose a behavior change into end-to-end slices, each verifiable alone; wide mechanical changes go expand -> migrate -> contract.",
+      "trigger": "PLAN_WRITE for a feature or change that touches more than one layer (data, logic, API, UI) or renames/retypes something used in many places",
+      "steps": [
+        {
+          "order": 1,
+          "action": "List the observable behaviors the change adds or alters, smallest useful one first",
+          "tool": "PLAN_BRAINSTORM",
+          "parameters": {},
+          "success_criteria": "Each behavior is stated as something a test or manual check can observe",
+          "fallback": "Ask the user which behavior matters first"
+        },
+        {
+          "order": 2,
+          "action": "For each behavior, one step that goes through every layer it touches, with the test that proves it named before the code (one RED-GREEN-REFACTOR cycle per behavior)",
+          "tool": "core.testing.sk",
+          "parameters": {},
+          "success_criteria": "Every step names its own verifying test and is shippable alone",
+          "fallback": "A step with no standalone check is merged into its neighbour or split differently"
+        },
+        {
+          "order": 3,
+          "action": "For a rename/retype/library swap too wide for one green slice: expand (add new form beside old), migrate call sites in batches, contract (remove old form)",
+          "tool": "PLAN_WRITE",
+          "parameters": {},
+          "success_criteria": "Build and tests are green after every batch",
+          "fallback": "A red batch is reverted and re-split smaller"
+        },
+        {
+          "order": 4,
+          "action": "Execute one slice at a time",
+          "tool": "PLAN_EXECUTE",
+          "parameters": {},
+          "success_criteria": "Each slice's test passes before the next starts",
+          "fallback": "Stop and re-plan the remaining slices"
+        }
+      ],
+      "learned_from": "stock (EP-89)",
+      "success_count": 0,
+      "last_used": null,
+      "pinned": false,
+      "stock": true
+    }
+  ],
   "schema": {
     "workflow": {
       "id": "string — unique identifier",
@@ -21,6 +67,7 @@
       "success_count": "number — how many times this workflow has been successfully executed",
       "last_used": "string — ISO 8601 timestamp",
       "pinned": "boolean — reserved for a future forgetting/pruning policy for this file, which does not exist yet (core.memory.sk has none defined) — currently always false, has no effect",
+      "stock": "boolean — true only for a workflow shipped with the framework. UPDATE_PROMPT.md Step 2 matches stock entries by id on upgrade, adds missing ones and offers changed ones (never replaces a user-edited entry without asking, keeps success_count/last_used); absent or false for anything the project saved itself",
       "project_only": "boolean — true only for a workflow specific to this repo's own dev process, never meant for a project that installs the framework; absent or false for a normal reusable workflow. INSTALL_PROMPT.md Step 4 strips any project_only:true entry on fresh install (EP-75) — same treatment RELEASE/EVOLVE_BENCHMARK already get as commands"
     }
   },

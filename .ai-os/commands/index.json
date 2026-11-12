@@ -54,7 +54,7 @@
     {
       "name": "TASK_CLOSE",
       "type": "built-in",
-      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, sanitized per BOOT.md §2), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
+      "description": "Full procedure in core.memory.sk. Resolves the task file for [branch] (default: current branch, resolved via scripts/task_identity.py per BOOT.md §2), verifies claims before promoting them to semantic memory, dedups against existing knowledge entries, then physically MOVEs the task file from .ai-os/memory/tasks/ to .ai-os/memory/archived_tasks/. Also writes the session summary to sessions.jsonl and last_session.json.",
       "usage": "> OS_COMMAND TASK_CLOSE [branch]"
     }
   ],
@@ -702,7 +702,7 @@
             "standard",
             "aggressive"
           ],
-          "default": "archetype-derived"
+          "omitted": "resolved from manifest.json.project_archetype per core.simplicity.sk"
         }
       }
     },
@@ -722,7 +722,7 @@
             "standard",
             "aggressive"
           ],
-          "default": "archetype-derived"
+          "omitted": "resolved from manifest.json.project_archetype per core.simplicity.sk"
         }
       }
     },

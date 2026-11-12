@@ -1,13 +1,14 @@
 {
-  "version": "2.0.0",
-  "last_updated": "2026-08-31",
-  "note": "Skill health (failures, degraded state) is derived on demand from decisions.jsonl by HEAL_CIRCUIT_STATUS, not tracked as live state here — an agent cannot reliably keep persistent counters up to date across sessions. 'version' here is this file's own schema/catalog-format version (bump on structural changes to how skills are described), not the framework's ai_os_version in manifest.json — commands/index.json's 'version' field is the same kind of catalog-schema version, tracked independently per file since the two catalogs' shapes can and do change on different schedules.",
+  "version": "2.1.0",
+  "last_updated": "2026-11-13",
+  "note": "Skill health (failures, degraded state) is derived on demand from decisions.jsonl by HEAL_CIRCUIT_STATUS, not tracked as live state here — an agent cannot reliably keep persistent counters up to date across sessions. 'version' here is this file's own schema/catalog-format version (bump on structural changes to how skills are described), not the framework's ai_os_version in manifest.json — commands/index.json's 'version' field is the same kind of catalog-schema version, tracked independently per file since the two catalogs' shapes can and do change on different schedules. 'pointer_description' (optional, EP-88) is the always-loaded text for host-native skill pointers (INSTALL_PROMPT.md Step 3): it leads with the situations that should load the skill, kept short because every session pays for it; absent -> 'description' is used.",
   "skills": [
     {
       "id": "core.security.sk",
       "name": "Security Audit & Enforcement",
       "version": "1.0.0",
       "description": "Vulnerability scanning, dependency auditing, pre-commit security gates, and emergency lockdown.",
+      "pointer_description": "Use before writing or changing code that touches auth, input handling, secrets, shell/SQL/eval, or dependencies; when asked for a security audit or scan; or when a breach or leaked credential is suspected.",
       "entrypoint": "registry/core.security.sk/SKILL.md",
       "commands": [
         "SECURITY_AUDIT",
@@ -24,6 +25,7 @@
       "name": "Infrastructure & Scaffolding",
       "version": "1.0.0",
       "description": "Tech stack detection, project scaffolding, CI/CD generation, and health diagnostics.",
+      "pointer_description": "Use when detecting or changing the tech stack, scaffolding a project or CI, the build or environment is broken, mapping modules or data flow, analyzing commit history, or isolating a branch in a git worktree.",
       "entrypoint": "registry/core.infra.sk/SKILL.md",
       "commands": [
         "INFRA_DETECT_STACK",
@@ -47,6 +49,7 @@
       "name": "Testing & Validation",
       "version": "1.0.0",
       "description": "Test execution, coverage analysis, AI-assisted test generation, and impact analysis.",
+      "pointer_description": "Use when writing code test-first, running or generating tests, checking coverage, deciding which tests a change affects, or guarding a fixed bug with a regression test.",
       "entrypoint": "registry/core.testing.sk/SKILL.md",
       "commands": [
         "TEST_RUN",
@@ -63,6 +66,7 @@
       "name": "Self-Evolution Engine",
       "version": "1.0.0",
       "description": "PDCA-based self-improvement lifecycle - propose, apply, verify, and rollback system evolutions.",
+      "pointer_description": "Use when improving the AI OS framework itself: proposing, applying, rolling back, or reviewing changes to its skills, commands, rules, or workflows.",
       "entrypoint": "registry/core.evolution.sk/SKILL.md",
       "commands": [
         "EVOLVE_PROPOSE",
@@ -81,6 +85,7 @@
       "name": "Observability & Audit Trail",
       "version": "1.0.0",
       "description": "Decision logging, action tracing, session export, and health reporting.",
+      "pointer_description": "Use when logging a significant decision or action, tracing what happened in a session, or reporting progress or framework health.",
       "entrypoint": "registry/core.observability.sk/SKILL.md",
       "commands": [
         "LOG_DECISION",
@@ -97,6 +102,7 @@
       "name": "Context Engineering Engine",
       "version": "1.0.0",
       "description": "Guidance for intelligent context assembly, relevance scoring, and pruning what you actively choose to read.",
+      "pointer_description": "Use when a task needs more files than fit comfortably, when deciding what to read for a multi-part task, or when context is getting crowded and needs pruning.",
       "entrypoint": "registry/core.context-engine.sk/SKILL.md",
       "commands": [
         "CONTEXT_LOAD",
@@ -111,7 +117,8 @@
       "id": "core.memory.sk",
       "name": "Memory Lifecycle",
       "version": "1.0.0",
-      "description": "Backs TASK_CLOSE and MEMORY_CONSOLIDATE: verify-before-promote, diff-before-delete, dedup, branch-name sanitization, orphan sweep, and archive pruning for the task -> archived -> semantic pipeline.",
+      "description": "Backs TASK_CLOSE and MEMORY_CONSOLIDATE: verify-before-promote, diff-before-delete, dedup, collision-safe task-file resolution, orphan sweep, and archive pruning for the task -> archived -> semantic pipeline.",
+      "pointer_description": "Use when closing a task or branch, consolidating or pruning memory, or when a project-knowledge entry is wrong, stale, or contradicts the code.",
       "entrypoint": "registry/core.memory.sk/SKILL.md",
       "commands": [
         "MEMORY_AMEND"
@@ -131,6 +138,7 @@
       "name": "Self-Healing & Resilience",
       "version": "1.0.0",
       "description": "Loop detection, failure classification, auto-repair, and emergency protocols.",
+      "pointer_description": "Use when a test or build fails, an error repeats or a fix didn't stick, a bug needs its root cause before a fix, framework files look broken, or a claim needs a credibility check before reporting.",
       "entrypoint": "registry/core.self-healing.sk/SKILL.md",
       "commands": [
         "HEAL_DIAGNOSE",
@@ -149,6 +157,7 @@
       "name": "Architect - Idea to Project",
       "version": "1.0.0",
       "description": "Transforms a raw idea into a fully planned and scaffolded project through structured interview, architecture design, and automated scaffolding.",
+      "pointer_description": "Use when the user wants to start a new project from an idea: interview, architecture design, and scaffolding from an empty or near-empty workspace.",
       "entrypoint": "registry/core.architect.sk/SKILL.md",
       "commands": [
         "ARCHITECT_PLAN"
@@ -165,6 +174,7 @@
       "name": "Planning - Brainstorm, Write, Execute",
       "version": "1.0.0",
       "description": "Per-feature brainstorm -> write-plan -> execute cycle for work inside an existing project, distinct from architect.sk's greenfield-only scope.",
+      "pointer_description": "Use when a feature or change inside an existing project needs clarifying, a written step-by-step plan, plan execution, or a retrospective.",
       "entrypoint": "registry/core.planning.sk/SKILL.md",
       "commands": [
         "PLAN_BRAINSTORM",
@@ -187,6 +197,7 @@
       "name": "Simplicity - Complexity Governance",
       "version": "1.0.0",
       "description": "Pre-mutation simplicity ladder, deliberate-shortcut marker convention (AIOS-DEBT:), and over-engineering-scoped review/audit passes. Covers the gap R22 leaves: R22 forbids bundling unrequested refactors, nothing gates the requested work itself on necessity.",
+      "pointer_description": "Use before writing new code to check whether less code, the stdlib, or the platform already solves it; when reviewing a diff or codebase for over-engineering; or when taking a deliberate shortcut.",
       "entrypoint": "registry/core.simplicity.sk/SKILL.md",
       "commands": [
         "SIMPLIFY_REVIEW",
@@ -206,6 +217,7 @@
       "name": "Dev Loop - Implementation with Peer Review",
       "version": "1.0.0",
       "description": "Implementation with independent peer review when the host supports subagent dispatch; honestly-labeled same-agent fallback when it doesn't.",
+      "pointer_description": "Use when implementing a feature or fix that should get an independent review, especially small work without a plan.",
       "entrypoint": "registry/core.dev-loop.sk/SKILL.md",
       "commands": [
         "DEV_IMPLEMENT_REVIEWED"
