@@ -46,9 +46,11 @@ compaction can paraphrase/drop a transcript claim, not this file) + one `decisio
 entry for the grant; each edit made under it still logs its own entry (R13, unaffected).
 Expires at 5 kernel edits under one grant or session end (`WRAP`), whichever first —
 re-invoke the phrase to renew, never carries to a new session.
-NOTE: self-restraint, not a technical control — pair with a host permission deny-rule on
-kernel paths, or a CI check failing on `BOOT.md`/`rules/*` changes without `KERNEL
-OVERRIDE` in the commit message, for real enforcement.
+NOTE: self-restraint, not a technical control. Claude Code: installer adds host
+`permissions.ask` rules on kernel paths except `manifest.json` (EP-83) — human-clicked
+prompt per kernel edit; a script opening the file itself isn't covered. Other hosts: none
+shipped — pair with the host's own permission rule, or a CI check failing on
+`BOOT.md`/`rules/*` changes without `KERNEL OVERRIDE` in the commit message.
 OVERRIDE: none, all levels.
 
 ### R4 Role Clarity [ADVISORY]

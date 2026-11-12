@@ -184,6 +184,18 @@ automatically, so this file doesn't need editing every release.
    - If the user already narrowed their own `SubagentStart` matcher (it filters on agent type),
      leave their value alone — do not widen it back to `.*`. See `INSTALL_PROMPT.md` Step 3 for
      the token cost that motivates narrowing it.
+   - **Kernel-path permission gate (EP-83):** ensure every rule in
+     `.ai-os-installer/templates/claude-code-permissions.json`'s `permissions.ask` array is
+     present in the user's `.claude/settings.json` `permissions.ask` — add only the missing
+     ones, never replace or reorder their own rules, and if the user has deliberately removed
+     one (they say so, or a `deny` rule of theirs already covers the same path) leave it. Once
+     this is in place, Step 3's own kernel-file copies on a *later* update will raise host
+     prompts — that is the gate working; tell the user to expect and approve them.
+   - **Native skill pointers (EP-84):** regenerate `.claude/skills/ai-os-*/SKILL.md` from the
+     user's merged `registry/index.json` exactly as `INSTALL_PROMPT.md` Step 3 describes.
+     Idempotent: write a pointer only where it is missing or its content differs; delete an
+     `ai-os-*` directory only if its `SKILL.md` carries the `ai-os-pointer` marker and its
+     skill id is no longer in the registry; never touch a skill directory without that marker.
 For Codex, update only an already-enabled AI-OS hook using [CODEX_HOOKS.md](CODEX_HOOKS.md).
 Do not enable the optional add-on during an ordinary update. Preserve unrelated hooks,
 custom matcher scope, and explicit disablement; changed definitions need host trust review.

@@ -19,6 +19,7 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 *   **Perception & Stack Discovery**: Can profile your workspace (via `OS_COMMAND INFRA_DISCOVER_MODULES`) to detect tech stack drift, map sub-modules, and generate new semantic rules or custom skills based on what it finds.
 *   **Idea-to-Code Scaffolding**: An `Architect` skill that walks greenfield ideas through a structured interview to a project plan, code scaffolding, and environment config.
 *   **IDE Bridge Files**: Hooks into your IDE's customization system (`.agents/skills.json`, a root `AGENTS.md`, plus host-specific files like `CLAUDE.md` and Cursor's `.mdc` rules) so skills and memory are loaded into the agent's context — each bridge file carries a self-sufficient minimum contract even on hosts that never run the full boot sequence.
+*   **Host-Level Kernel Gate & Native Skill Discovery (Claude Code only)**: The installer adds `permissions.ask` rules so any edit to `BOOT.md`, `kernel/`, `rules/`, or `genome/archetypes/` raises a host prompt a human must approve — a second layer under the override phrase, not a guarantee (a script that opens the file itself isn't covered). It also generates thin pointer skills in `.claude/skills/ai-os-*/` so the host discovers each registry skill natively; the pointers hold no procedure, only a link back to `registry/*/SKILL.md`. On every other host, kernel protection is still agent self-restraint and skills are still reached through `registry/index.json`.
 *   **Four-Tier Memory Model**: Reduces cross-session context loss by maintaining Episodic (decisions), Semantic (project structure), Task (active branch), and Procedural (executable playbooks) memory.
 *   **Hub and Spoke Task Memory**: When you switch to a feature or bugfix branch, working memory is isolated into a dedicated task file, keeping the global project knowledge file free of branch-specific noise.
 *   **Dedicated Plans Folder**: Approved implementation plans are written to `.ai-os/memory/plans/` as dated standalone files (`2026-09-03-add-pkce-flow.md`), not buried in scratch task notes. `PLAN_WRITE` and the `Architect` skill both land here; execution progress is tracked as checkboxes in the plan file itself. When a host IDE force-creates its own `implementation_plan.md`, the framework offers to move it here with its structure intact rather than flattening it into notes.
@@ -288,4 +289,4 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 
 ---
 
-*MaiKS v2.9.0*
+*MaiKS v2.9.1*

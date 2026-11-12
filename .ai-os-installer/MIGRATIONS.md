@@ -13,6 +13,46 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.9.1 — Read-Time Memory Conflicts, Iterative Context Loading, Host Permission Gate, Native Skill Pointers
+
+- **`MEMORY_AMEND` gains a third trigger** (EP-81): a `knowledge/*.md` entry that
+  contradicts the repo's current code/config, noticed during ordinary work. Current repo
+  state wins for the task; the agent names the entry and runs `MEMORY_AMEND` on it.
+  Text-only change in `registry/core.memory.sk/SKILL.md`.
+- **`CONTEXT_LOAD` is no longer one-shot** (EP-82): multi-part tasks are split into
+  sub-questions and sources scored per sub-question; a new closing step sends the agent
+  back for a specific source when a needed fact turns out not to be loaded. The "Massive
+  Context Strategy" branch (load whole modules, skip pruning on >1M-token windows) is
+  removed from `CONTEXT_LOAD` and `CONTEXT_PRUNE` — selective loading applies at every
+  window size. Text-only change in `registry/core.context-engine.sk/SKILL.md`.
+- **Migration action:** none beyond `UPDATE_PROMPT.md` Step 3's standard core-skill
+  refresh — ensure the installed `core.memory.sk/SKILL.md` and
+  `core.context-engine.sk/SKILL.md` match the update source.
+
+- **Kernel text** (EP-81, EP-83): `BOOT.md` §7 gained a "MEMORY CONFLICT ON READ" bullet;
+  `BOOT.md` §1's note and R3's NOTE in `rules/ultimate_rules.md` now describe the Claude
+  Code permission gate and its limits instead of saying no host control exists. No rule
+  text or severity changed. **Migration action:** none — `UPDATE_PROMPT.md` Step 3 copies
+  kernel files (after its authorized-customization check).
+
+The two items below are Claude Code hosts only. Other hosts: nothing to do — R3 remains self-restraint there and
+skills are still reached through `registry/index.json`.
+
+- **Kernel-path permission gate** (EP-83): new template
+  `templates/claude-code-permissions.json` — `permissions.ask` rules for `.ai-os/BOOT.md`,
+  `.ai-os/kernel/**`, `.ai-os/rules/**`, `.ai-os/genome/archetypes/**`. `Edit(...)` rules
+  govern every built-in file-editing tool, and `/path` is relative to the project root in
+  project settings (checked against the Claude Code permissions docs, 2026-11-12).
+  **Migration action:** none here — `UPDATE_PROMPT.md` Step 5 item 3 ensures the rules are
+  present on every update, unconditionally.
+- **Native skill pointers** (EP-84): new template `templates/skill-pointer.md`; the
+  installer generates `.claude/skills/ai-os-<slug>/SKILL.md` per registered skill, each a
+  pointer to the registry `SKILL.md` (no copied procedure). Names follow the Agent Skills
+  spec (lowercase/digits/hyphens, equal to the directory name; checked 2026-11-12).
+  **Migration action:** none here — `UPDATE_PROMPT.md` Step 5 item 3 regenerates them
+  idempotently on every update and never touches a skill directory lacking the
+  `ai-os-pointer` marker.
+
 ## v2.9.0 — Collision-safe task identities at boot, resume refresh, optional Codex adapter
 
 - **Task identity is now part of boot** (EP-80): `BOOT.md` §2 step 4 resolves task memory
@@ -43,22 +83,6 @@ would corrupt a little more on each pass.
   `.ai-os-installer/CODEX_HOOKS.md`. **Migration action:** copy the script with the others;
   install the hooks only if the user opts in, following `CODEX_HOOKS.md`. Not verified in a
   live Codex session yet.
-
-## v2.9.0 (cont'd) — Read-Time Memory Conflicts, Iterative Context Loading
-
-- **`MEMORY_AMEND` gains a third trigger** (EP-81): a `knowledge/*.md` entry that
-  contradicts the repo's current code/config, noticed during ordinary work. Current repo
-  state wins for the task; the agent names the entry and runs `MEMORY_AMEND` on it.
-  Text-only change in `registry/core.memory.sk/SKILL.md`.
-- **`CONTEXT_LOAD` is no longer one-shot** (EP-82): multi-part tasks are split into
-  sub-questions and sources scored per sub-question; a new closing step sends the agent
-  back for a specific source when a needed fact turns out not to be loaded. The "Massive
-  Context Strategy" branch (load whole modules, skip pruning on >1M-token windows) is
-  removed from `CONTEXT_LOAD` and `CONTEXT_PRUNE` — selective loading applies at every
-  window size. Text-only change in `registry/core.context-engine.sk/SKILL.md`.
-- **Migration action:** none beyond `UPDATE_PROMPT.md` Step 3's standard core-skill
-  refresh — ensure the installed `core.memory.sk/SKILL.md` and
-  `core.context-engine.sk/SKILL.md` match the update source.
 
 ## v2.8.0 — Automatic Peer Review on Plan Execution
 

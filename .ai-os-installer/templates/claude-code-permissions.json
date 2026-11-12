@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(/.ai-os/BOOT.md)",
+      "Edit(/.ai-os/kernel/**)",
+      "Edit(/.ai-os/rules/**)",
+      "Edit(/.ai-os/genome/archetypes/**)"
+    ]
+  }
+}

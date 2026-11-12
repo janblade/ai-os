@@ -67,6 +67,29 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
     `general-purpose|Plan` injects into agents that write or design and skips read-only search
     agents. Removing it entirely is a governance decision, not a tuning one; say so to the user
     if they ask for that.
+  - **Kernel-path permission gate (EP-83):** also merge the `permissions.ask` entries from
+    `.ai-os-installer/templates/claude-code-permissions.json` into the same
+    `.claude/settings.json` — add each rule to the existing `permissions.ask` array if it's
+    missing (create the array if absent); never replace or reorder the user's own
+    `allow`/`ask`/`deny` rules. Effect: any edit to `BOOT.md`, `kernel/`, `rules/`, or
+    `genome/archetypes/` raises a host prompt a human has to approve — a second layer under
+    R3's override phrase, which on its own is agent self-restraint. `ask`, not `deny`, so an
+    authorized kernel edit is still possible; `manifest.json` is left out on purpose (it has
+    fields the framework updates automatically). **Limits, tell the user:** Claude Code only;
+    a script that opens the file itself (Python, Node) is not covered — the host's sandbox is
+    the control for that; this is a second layer, not a guarantee.
+  - **Native skill pointers (EP-84):** for every skill in the project's
+    `.ai-os/registry/index.json` (after Step 4's strip, so project-only commands are already
+    gone), create `.claude/skills/ai-os-<slug>/SKILL.md` from
+    `.ai-os-installer/templates/skill-pointer.md`. `<slug>` = the skill `id` minus its
+    trailing `.sk`, lowercased, every character outside `a-z0-9` replaced by `-`, runs of `-`
+    collapsed (`core.memory.sk` → `ai-os-core-memory`); the frontmatter `name` must equal the
+    directory name. Fill `{description}` and `{commands}` from that registry entry (keep the
+    whole description under 1024 characters) and `{id}` with the unmodified skill id. These
+    are pointers, not copies — the body only tells the agent to read the registry `SKILL.md`,
+    so there is nothing to drift. Never overwrite an existing skill directory that lacks the
+    template's `ai-os-pointer` marker line; that one is the user's own. Cost: one short
+    description per skill is loaded into every session by the host.
 - **Codex (optional):** Keep the root `AGENTS.md` bridge. Offer the read-only startup
   add-on in [CODEX_HOOKS.md](CODEX_HOOKS.md); install only if the user selects it.
   It requires Python 3.8+ and a Codex host with the documented hooks interface.
