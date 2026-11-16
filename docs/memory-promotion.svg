@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 280" role="img"
+     font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1B2430"
+     aria-label="How a note becomes project knowledge. Working notes go into the branch's task file unchecked. On TASK_CLOSE or MEMORY_CONSOLIDATE each candidate fact passes two gates: is it still true in the code now, and was the change it describes actually accepted, with owner sign-off on startup archetypes and above. A fact that fails either gate stays in the task file. A fact that passes both is written to knowledge/*.md, which every later session trusts without re-checking. An entry later found wrong goes through MEMORY_AMEND and the same gate, never a silent edit.">
+  <title>How a note becomes project knowledge</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5B6675"/>
+    </marker>
+    <marker id="arrPass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3F7D53"/>
+    </marker>
+    <marker id="arrFail" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9C3B2E"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="758" height="278" rx="16" fill="#FFFFFF" stroke="#C9D2DC"/>
+
+  <!-- Task file -->
+  <rect x="20" y="58" width="130" height="64" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
+  <text x="85" y="84" text-anchor="middle" font-size="11" font-weight="600" font-family="ui-monospace, Consolas, monospace">tasks/&lt;branch&gt;.md</text>
+  <text x="85" y="102" text-anchor="middle" font-size="11" fill="#5B6675">notes, unchecked</text>
+
+  <path d="M150,90 L226,90" stroke="#5B6675" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="188" y="72" text-anchor="middle" font-size="10.5" fill="#5B6675">on close or</text>
+  <text x="188" y="84" text-anchor="middle" font-size="10.5" fill="#5B6675">consolidate</text>
+
+  <!-- Gate 1 -->
+  <polygon points="230,90 290,48 350,90 290,132" fill="#FFFFFF" stroke="#5B6675" stroke-width="1.4"/>
+  <text x="290" y="86" text-anchor="middle" font-size="11.5" font-weight="600">still true</text>
+  <text x="290" y="101" text-anchor="middle" font-size="11.5" font-weight="600">in the code?</text>
+
+  <path d="M350,90 L406,90" stroke="#3F7D53" stroke-width="1.8" fill="none" marker-end="url(#arrPass)"/>
+  <text x="378" y="82" text-anchor="middle" font-size="11" fill="#3F7D53">yes</text>
+
+  <!-- Gate 2 -->
+  <text x="470" y="38" text-anchor="middle" font-size="10.5" fill="#5B6675">owner signs off (startup and up)</text>
+  <polygon points="410,90 470,48 530,90 470,132" fill="#FFFFFF" stroke="#5B6675" stroke-width="1.4"/>
+  <text x="470" y="86" text-anchor="middle" font-size="11.5" font-weight="600">change</text>
+  <text x="470" y="101" text-anchor="middle" font-size="11.5" font-weight="600">accepted?</text>
+
+  <path d="M530,90 L586,90" stroke="#3F7D53" stroke-width="1.8" fill="none" marker-end="url(#arrPass)"/>
+  <text x="558" y="82" text-anchor="middle" font-size="11" fill="#3F7D53">yes</text>
+
+  <!-- Knowledge -->
+  <rect x="590" y="56" width="150" height="68" rx="10" fill="#DFEEE3" stroke="#3F7D53" stroke-width="1.6"/>
+  <text x="665" y="80" text-anchor="middle" font-size="11" font-weight="600" font-family="ui-monospace, Consolas, monospace">knowledge/*.md</text>
+  <text x="665" y="98" text-anchor="middle" font-size="11" fill="#5B6675">trusted by every</text>
+  <text x="665" y="112" text-anchor="middle" font-size="11" fill="#5B6675">later session</text>
+
+  <!-- Fail paths -->
+  <g stroke="#9C3B2E" stroke-width="1.6" fill="none" marker-end="url(#arrFail)">
+    <path d="M290,132 L290,196"/>
+    <path d="M470,132 L470,196"/>
+  </g>
+  <text x="298" y="168" font-size="11" fill="#9C3B2E">no</text>
+  <text x="478" y="168" font-size="11" fill="#9C3B2E">no</text>
+
+  <rect x="230" y="200" width="300" height="40" rx="9" fill="#F4E1DD" stroke="#9C3B2E" stroke-width="1.4"/>
+  <text x="380" y="224" text-anchor="middle" font-size="11.5" font-weight="600">stays in the task file, not promoted</text>
+
+  <!-- Amend loop -->
+  <path d="M640,124 L640,196" stroke="#5B6675" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <path d="M690,200 L690,128" stroke="#5B6675" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <text x="632" y="164" text-anchor="end" font-size="10.5" fill="#5B6675">found wrong</text>
+  <text x="698" y="164" font-size="10.5" fill="#5B6675">same gate</text>
+  <rect x="590" y="200" width="150" height="56" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
+  <text x="665" y="223" text-anchor="middle" font-size="11" font-weight="600" font-family="ui-monospace, Consolas, monospace">MEMORY_AMEND</text>
+  <text x="665" y="241" text-anchor="middle" font-size="10.5" fill="#5B6675">correct, move or remove</text>
+</svg>

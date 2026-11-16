@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 900" role="img"
-     aria-label="Flowchart: a command enters via typed OS_COMMAND, an alias, or a natural-language match; all three resolve against commands/index.json; the resolved entry branches into a built-in procedure or a skill command that loads its registry SKILL.md; both paths emit an ANNOUNCE banner, then execute, optionally dispatching a sub-command or subagent; the result is verified, and on pass logs a decision and writes memory, or on fail rolls back -- both ending in a report to the user.">
-  <title>Command Invocation Flow</title>
+     font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1B2430"
+     aria-label="Command invocation flow. A command arrives typed as OS_COMMAND, through an alias, or as a plain-English request matched to the closest command; all three resolve against commands/index.json. A built-in runs its procedure from BOOT.md; any other command loads its registry SKILL.md. Both print the one-line AI-OS banner, then run the procedure, optionally dispatching a reviewer subagent or a chained command. The result is verified: on pass a significant decision is logged and memory is written through its gate; on fail the result is reported as not verified, and an evolution is rolled back. Both end in a report to the user.">
+  <title>Command invocation flow</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#5B6675"/>
@@ -19,128 +20,121 @@
     </marker>
   </defs>
 
-  <style>
-    text{ font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill:#1B2430; }
-    .mono{ font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
-    .cap{ fill:#5B6675; font-size:11px; }
-    .lbl{ fill:#5B6675; font-size:11px; }
-  </style>
-
-  <!-- frame -->
   <rect x="1" y="1" width="758" height="898" rx="16" fill="#FFFFFF" stroke="#C9D2DC"/>
 
-  <!-- Row 1: entry points -->
-  <g>
-    <rect x="10" y="16" width="228" height="56" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
-    <text x="124" y="40" text-anchor="middle" class="mono" font-size="12.5" font-weight="600">&gt; OS_COMMAND NAME</text>
-    <text x="124" y="58" text-anchor="middle" class="cap">typed invocation</text>
-
-    <rect x="266" y="16" width="228" height="56" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
-    <text x="380" y="40" text-anchor="middle" class="mono" font-size="12.5" font-weight="600">aliases.json lookup</text>
-    <text x="380" y="58" text-anchor="middle" class="cap">e.g. "ship" &#8594; RELEASE</text>
-
-    <rect x="522" y="16" width="228" height="56" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
-    <text x="636" y="40" text-anchor="middle" class="mono" font-size="12.5" font-weight="600">natural-language match</text>
-    <text x="636" y="58" text-anchor="middle" class="cap">plain-English request</text>
+  <!-- Entry points -->
+  <g fill="#F7F9FC" stroke="#C9D2DC">
+    <rect x="10" y="16" width="228" height="56" rx="9"/>
+    <rect x="266" y="16" width="228" height="56" rx="9"/>
+    <rect x="522" y="16" width="228" height="56" rx="9"/>
+  </g>
+  <g text-anchor="middle" font-size="12.5" font-weight="600" font-family="ui-monospace, Consolas, monospace">
+    <text x="124" y="40">&gt; OS_COMMAND NAME</text>
+    <text x="380" y="40">aliases.json lookup</text>
+    <text x="636" y="40">natural-language match</text>
+  </g>
+  <g text-anchor="middle" font-size="11" fill="#5B6675">
+    <text x="124" y="58">typed invocation</text>
+    <text x="380" y="58">e.g. "test" → TEST_RUN</text>
+    <text x="636" y="58">closest command, matched silently</text>
   </g>
 
-  <!-- converging arrows into Resolve -->
   <g stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)">
-    <path d="M124,72 L124,90 Q124,100 145,100 L360,100 Q380,100 380,108"/>
-    <path d="M380,72 L380,108"/>
-    <path d="M636,72 L636,90 Q636,100 615,100 L400,100 Q380,100 380,108"/>
+    <path d="M124,72 L124,90 Q124,100 145,100 L360,100 Q380,100 380,106"/>
+    <path d="M380,72 L380,106"/>
+    <path d="M636,72 L636,90 Q636,100 615,100 L400,100 Q380,100 380,106"/>
   </g>
 
   <!-- Resolve -->
   <rect x="260" y="108" width="240" height="50" rx="9" fill="#FFFFFF" stroke="#2452A6" stroke-width="1.6"/>
   <text x="380" y="129" text-anchor="middle" font-size="12.5" font-weight="600">Resolve in</text>
-  <text x="380" y="145" text-anchor="middle" class="mono" font-size="12.5" font-weight="600">commands/index.json</text>
+  <text x="380" y="145" text-anchor="middle" font-size="12.5" font-weight="600" font-family="ui-monospace, Consolas, monospace">commands/index.json</text>
 
-  <path d="M380,158 L380,188" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M380,158 L380,186" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
-  <!-- Branch diamond -->
   <polygon points="380,190 460,226 380,262 300,226" fill="#FFFFFF" stroke="#5B6675" stroke-width="1.4"/>
-  <text x="380" y="222" text-anchor="middle" font-size="12" font-weight="600">built-in</text>
-  <text x="380" y="236" text-anchor="middle" font-size="12" font-weight="600">command?</text>
+  <text x="380" y="222" text-anchor="middle" font-weight="600">built-in</text>
+  <text x="380" y="236" text-anchor="middle" font-weight="600">command?</text>
 
-  <!-- branch arrows -->
-  <path d="M320,244 L110,244 L110,300" stroke="#2452A6" stroke-width="1.8" fill="none" marker-end="url(#arrowKernel)"/>
-  <text x="205" y="238" text-anchor="middle" class="lbl" fill="#2452A6">yes</text>
+  <path d="M300,226 L110,226 L110,298" stroke="#2452A6" stroke-width="1.8" fill="none" marker-end="url(#arrowKernel)"/>
+  <text x="205" y="218" text-anchor="middle" font-size="11" fill="#2452A6">yes</text>
+  <path d="M460,226 L650,226 L650,298" stroke="#B4632B" stroke-width="1.8" fill="none" marker-end="url(#arrowUser)"/>
+  <text x="555" y="218" text-anchor="middle" font-size="11" fill="#B4632B">no</text>
 
-  <path d="M440,244 L650,244 L650,300" stroke="#B4632B" stroke-width="1.8" fill="none" marker-end="url(#arrowUser)"/>
-  <text x="555" y="238" text-anchor="middle" class="lbl" fill="#B4632B">no</text>
-
-  <!-- Built-in box -->
+  <!-- Built-in / skill -->
   <rect x="40" y="300" width="300" height="64" rx="10" fill="#DDE7F7" stroke="#2452A6" stroke-width="1.6"/>
-  <text x="190" y="324" text-anchor="middle" font-size="12.5" font-weight="600">Execute built-in procedure</text>
-  <text x="190" y="342" text-anchor="middle" class="lbl">defined inline in BOOT.md &#167;4 /</text>
-  <text x="190" y="356" text-anchor="middle" class="lbl">core.memory.sk backs 2 of them</text>
+  <text x="190" y="324" text-anchor="middle" font-size="12.5" font-weight="600">Run the built-in procedure</text>
+  <text x="190" y="342" text-anchor="middle" font-size="11" fill="#5B6675">defined in BOOT.md §4;</text>
+  <text x="190" y="356" text-anchor="middle" font-size="11" fill="#5B6675">core.memory.sk backs two of them</text>
 
-  <!-- Skill box -->
   <rect x="420" y="300" width="300" height="64" rx="10" fill="#F5E6D6" stroke="#B4632B" stroke-width="1.6"/>
-  <text x="570" y="324" text-anchor="middle" class="mono" font-size="12.5" font-weight="600">Load registry/{skill}/SKILL.md</text>
-  <text x="570" y="342" text-anchor="middle" class="lbl">skill named by the matched</text>
-  <text x="570" y="356" text-anchor="middle" class="lbl">skill_commands entry</text>
+  <text x="570" y="324" text-anchor="middle" font-size="12.5" font-weight="600" font-family="ui-monospace, Consolas, monospace">Load registry/{skill}/SKILL.md</text>
+  <text x="570" y="342" text-anchor="middle" font-size="11" fill="#5B6675">the skill named by the matched</text>
+  <text x="570" y="356" text-anchor="middle" font-size="11" fill="#5B6675">skill_commands entry</text>
 
-  <!-- merge into ANNOUNCE -->
-  <path d="M190,364 L190,384 Q190,394 210,394 L360,394 Q380,394 380,404" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M570,364 L570,384 Q570,394 550,394 L400,394 Q380,394 380,404" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <g stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)">
+    <path d="M190,364 L190,384 Q190,394 210,394 L360,394 Q380,394 380,402"/>
+    <path d="M570,364 L570,384 Q570,394 550,394 L400,394 Q380,394 380,402"/>
+  </g>
 
+  <!-- Banner -->
   <rect x="210" y="404" width="340" height="54" rx="9" fill="#FFFFFF" stroke="#1B2430" stroke-width="1.4"/>
-  <text x="380" y="426" text-anchor="middle" class="mono" font-size="12.5" font-weight="700">&#9656; AI-OS &#183; {skill | built-in} &#183; {COMMAND}</text>
-  <text x="380" y="443" text-anchor="middle" class="lbl">ANNOUNCE ON INVOCATION &#8212; receipt, not deliberation</text>
+  <text x="380" y="426" text-anchor="middle" font-size="12.5" font-weight="700" font-family="ui-monospace, Consolas, monospace">▸ AI-OS · {skill | built-in} · {COMMAND}</text>
+  <text x="380" y="443" text-anchor="middle" font-size="11" fill="#5B6675">one-line banner before the procedure runs</text>
 
-  <path d="M380,458 L380,488" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M380,458 L380,486" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
   <!-- Execute -->
   <rect x="210" y="488" width="340" height="60" rx="9" fill="#FFFFFF" stroke="#C9D2DC" stroke-width="1.6"/>
   <text x="380" y="512" text-anchor="middle" font-size="12.5" font-weight="600">Run the command procedure</text>
-  <text x="380" y="529" text-anchor="middle" class="lbl">skill's named steps, or the built-in's own</text>
-  <text x="380" y="542" text-anchor="middle" class="lbl">defined behavior</text>
+  <text x="380" y="530" text-anchor="middle" font-size="11" fill="#5B6675">the skill's numbered steps, or</text>
+  <text x="380" y="543" text-anchor="middle" font-size="11" fill="#5B6675">the built-in's defined behavior</text>
 
-  <!-- dashed side dispatch -->
-  <path d="M550,510 L602,510" stroke="#5B6675" stroke-width="1.4" fill="none" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
-  <rect x="605" y="472" width="148" height="96" rx="9" fill="#F7F9FC" stroke="#5B6675" stroke-width="1.2" stroke-dasharray="4 3"/>
-  <text x="679" y="491" text-anchor="middle" class="lbl" font-weight="600">sub-dispatch (optional)</text>
-  <text x="679" y="509" text-anchor="middle" class="lbl">&#8594; subagent review</text>
-  <text x="679" y="525" text-anchor="middle" class="lbl">&#8594; EVOLVE_APPLY &#8594; RELEASE</text>
-  <text x="679" y="541" text-anchor="middle" class="lbl">&#8594; chained &amp;&amp; / ||</text>
-  <text x="679" y="557" text-anchor="middle" class="lbl">command</text>
+  <path d="M550,518 L601,518" stroke="#5B6675" stroke-width="1.4" fill="none" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  <text x="576" y="510" text-anchor="middle" font-size="10.5" fill="#5B6675">may call</text>
+  <rect x="605" y="480" width="145" height="76" rx="9" fill="#F7F9FC" stroke="#5B6675" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <g text-anchor="middle" font-size="11" fill="#5B6675">
+    <text x="677" y="500" font-weight="600">optional</text>
+    <text x="677" y="518">reviewer subagent</text>
+    <text x="677" y="534">chained command</text>
+    <text x="677" y="548" font-family="ui-monospace, Consolas, monospace">&amp;&amp;  /  ||</text>
+  </g>
 
-  <path d="M380,548 L380,578" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M380,548 L380,576" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
-  <!-- Verify diamond -->
+  <!-- Verify -->
   <polygon points="380,580 470,618 380,656 290,618" fill="#FFFFFF" stroke="#5B6675" stroke-width="1.4"/>
-  <text x="380" y="613" text-anchor="middle" font-size="12.5" font-weight="600">Verify</text>
-  <text x="380" y="629" text-anchor="middle" class="lbl">integrity &#183; VBC &#183; CHECK</text>
+  <text x="380" y="614" text-anchor="middle" font-size="12.5" font-weight="600">Verify</text>
+  <text x="380" y="630" text-anchor="middle" font-size="11" fill="#5B6675">run what can be run</text>
 
-  <!-- fail path -->
-  <path d="M320,636 L180,636 L180,700" stroke="#9C3B2E" stroke-width="1.8" fill="none" marker-end="url(#arrowFail)"/>
-  <text x="250" y="630" text-anchor="middle" class="lbl" fill="#9C3B2E">fail</text>
+  <path d="M290,618 L180,618 L180,698" stroke="#9C3B2E" stroke-width="1.8" fill="none" marker-end="url(#arrowFail)"/>
+  <text x="235" y="610" text-anchor="middle" font-size="11" fill="#9C3B2E">fail</text>
 
   <rect x="40" y="700" width="280" height="60" rx="10" fill="#F4E1DD" stroke="#9C3B2E" stroke-width="1.6"/>
-  <text x="180" y="724" text-anchor="middle" font-size="12.5" font-weight="600">Rollback + report failure</text>
-  <text x="180" y="742" text-anchor="middle" class="lbl">restore preserved pre-change state</text>
+  <text x="180" y="724" text-anchor="middle" font-size="12.5" font-weight="600">Report as not verified</text>
+  <text x="180" y="742" text-anchor="middle" font-size="11" fill="#5B6675">an evolution also rolls back</text>
 
-  <!-- pass path -->
-  <path d="M430,632 L540,632 L540,700" stroke="#3F7D53" stroke-width="1.8" fill="none" marker-end="url(#arrowPass)"/>
-  <text x="500" y="626" text-anchor="middle" class="lbl" fill="#3F7D53">pass</text>
-  <path d="M430,636 L640,636 L640,700" stroke="#3F7D53" stroke-width="1.8" fill="none" marker-end="url(#arrowPass)"/>
+  <g stroke="#3F7D53" stroke-width="1.8" fill="none" marker-end="url(#arrowPass)">
+    <path d="M470,618 L690,618 L690,698"/>
+    <path d="M535,618 L535,698"/>
+  </g>
+  <text x="502" y="610" text-anchor="middle" font-size="11" fill="#3F7D53">pass</text>
 
   <rect x="450" y="700" width="170" height="60" rx="10" fill="#DFEEE3" stroke="#3F7D53" stroke-width="1.6"/>
-  <text x="535" y="726" text-anchor="middle" font-size="12.5" font-weight="600">Log decision</text>
-  <text x="535" y="743" text-anchor="middle" class="lbl">R13, if significant</text>
+  <text x="535" y="726" text-anchor="middle" font-size="12.5" font-weight="600">Log the decision</text>
+  <text x="535" y="743" text-anchor="middle" font-size="11" fill="#5B6675">if significant (R13)</text>
 
   <rect x="630" y="700" width="120" height="60" rx="10" fill="#DFEEE3" stroke="#3F7D53" stroke-width="1.6"/>
-  <text x="690" y="726" text-anchor="middle" font-size="12.5" font-weight="600">Memory</text>
-  <text x="690" y="743" text-anchor="middle" class="lbl">write, gated</text>
+  <text x="690" y="726" text-anchor="middle" font-size="12.5" font-weight="600">Write memory</text>
+  <text x="690" y="743" text-anchor="middle" font-size="11" fill="#5B6675">through its gate</text>
 
-  <!-- merge to report -->
-  <path d="M180,760 L180,790 Q180,800 200,800 L360,800 Q380,800 380,820" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M535,760 L535,790 Q535,800 515,800 L400,800 Q380,800 380,820" stroke="#C9D2DC" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M690,760 L690,796 Q690,806 665,806 L400,806 Q380,806 380,820" stroke="#C9D2DC" stroke-width="1.6" fill="none"/>
+  <g stroke="#C9D2DC" stroke-width="1.6" fill="none">
+    <path d="M180,760 L180,790 Q180,800 200,800 L360,800 Q380,800 380,818" marker-end="url(#arrow)"/>
+    <path d="M535,760 L535,790 Q535,800 515,800 L400,800 Q380,800 380,818" marker-end="url(#arrow)"/>
+    <path d="M690,760 L690,796 Q690,806 665,806 L400,806 Q380,806 380,818"/>
+  </g>
 
   <rect x="210" y="820" width="340" height="54" rx="9" fill="#F7F9FC" stroke="#C9D2DC" stroke-width="1.6"/>
-  <text x="380" y="843" text-anchor="middle" font-size="12.5" font-weight="600">Report result to user</text>
-  <text x="380" y="860" text-anchor="middle" class="lbl">no narration of alternatives &#8212; result as-is</text>
+  <text x="380" y="843" text-anchor="middle" font-size="12.5" font-weight="600">Report the result to the user</text>
+  <text x="380" y="860" text-anchor="middle" font-size="11" fill="#5B6675">as it is, without narrating alternatives</text>
 </svg>

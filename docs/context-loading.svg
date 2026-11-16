@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 528" role="img"
+     font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1B2430"
+     aria-label="What a session loads. The host reads a bridge file, which points to BOOT.md. BOOT.md reads five small files every session, about 5,500 to 6,500 tokens. Four larger sources load only when triggered: the full rules on a rule conflict or security decision, a skill's SKILL.md and the command catalog when a command runs, and the first-boot wizard once ever. On Claude Code only, a SessionStart and SubagentStart hook also injects BOOT.md, ultimate_rules.md and the task file verbatim, about 8,000 tokens, at every session start and every subagent spawn.">
+  <title>What a session loads, and when</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5B6675"/>
+    </marker>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2452A6"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#B4632B"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="758" height="526" rx="16" fill="#FFFFFF" stroke="#C9D2DC"/>
+
+  <!-- Bridge file -->
+  <rect x="20" y="40" width="180" height="60" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
+  <text x="110" y="64" text-anchor="middle" font-weight="600">Bridge file</text>
+  <text x="110" y="84" text-anchor="middle" font-size="11" fill="#5B6675" font-family="ui-monospace, Consolas, monospace">AGENTS.md, CLAUDE.md, …</text>
+
+  <path d="M200,70 L246,70" stroke="#5B6675" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="224" y="62" text-anchor="middle" font-size="11" fill="#5B6675">points to</text>
+
+  <!-- BOOT.md -->
+  <rect x="250" y="40" width="150" height="60" rx="9" fill="#FFFFFF" stroke="#1B2430" stroke-width="1.4"/>
+  <text x="325" y="64" text-anchor="middle" font-weight="700" font-family="ui-monospace, Consolas, monospace">BOOT.md</text>
+  <text x="325" y="84" text-anchor="middle" font-size="11" fill="#5B6675">hot core, ≈4.5K tokens</text>
+
+  <path d="M400,70 L466,70" stroke="#2452A6" stroke-width="1.8" fill="none" marker-end="url(#arrBlue)"/>
+  <text x="433" y="62" text-anchor="middle" font-size="11" fill="#2452A6">reads</text>
+
+  <!-- Every session -->
+  <rect x="470" y="16" width="270" height="168" rx="10" fill="#DDE7F7" stroke="#2452A6" stroke-width="1.6"/>
+  <text x="486" y="40" font-weight="700">Every session</text>
+  <text x="724" y="40" text-anchor="end" font-size="11" fill="#2452A6">≈5.5–6.5K tokens</text>
+  <g font-size="11" font-family="ui-monospace, Consolas, monospace">
+    <text x="486" y="68">manifest.json</text>
+    <text x="486" y="88">genome/project_genome.json</text>
+    <text x="486" y="108">genome/archetypes/&lt;active&gt;.json</text>
+    <text x="486" y="128">memory/episodic/last_session.json</text>
+    <text x="486" y="148">memory/tasks/&lt;branch&gt;.md</text>
+  </g>
+  <text x="486" y="172" font-size="11" fill="#5B6675">plus BOOT.md itself</text>
+
+  <!-- Only when triggered -->
+  <text x="486" y="216" font-weight="700">Only when triggered</text>
+  <path d="M325,100 L325,378" stroke="#5B6675" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+  <g stroke="#5B6675" stroke-width="1.4" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)">
+    <path d="M325,246 L466,246"/>
+    <path d="M325,290 L466,290"/>
+    <path d="M325,334 L466,334"/>
+    <path d="M325,378 L466,378"/>
+  </g>
+  <g font-size="11" fill="#5B6675" text-anchor="middle">
+    <text x="396" y="239">rule conflict, security</text>
+    <text x="396" y="283">a command runs</text>
+    <text x="396" y="327">a command runs</text>
+    <text x="396" y="371">first boot, once</text>
+  </g>
+  <g fill="#F7F9FC" stroke="#C9D2DC">
+    <rect x="470" y="228" width="270" height="36" rx="8"/>
+    <rect x="470" y="272" width="270" height="36" rx="8"/>
+    <rect x="470" y="316" width="270" height="36" rx="8"/>
+    <rect x="470" y="360" width="270" height="36" rx="8"/>
+  </g>
+  <g font-size="11" font-family="ui-monospace, Consolas, monospace">
+    <text x="486" y="250">rules/*.md  (full rule text)</text>
+    <text x="486" y="294">registry/&lt;skill&gt;/SKILL.md</text>
+    <text x="486" y="338">commands/index.json</text>
+    <text x="486" y="382">kernel/bootstrap.md</text>
+  </g>
+
+  <!-- Claude Code hook lane -->
+  <line x1="20" y1="416" x2="740" y2="416" stroke="#C9D2DC"/>
+  <text x="20" y="440" font-weight="700">Claude Code only: the hook path</text>
+  <text x="740" y="440" text-anchor="end" font-size="11" fill="#5B6675">paid on top of the boot read</text>
+
+  <rect x="20" y="456" width="190" height="56" rx="9" fill="#F7F9FC" stroke="#C9D2DC"/>
+  <text x="115" y="480" text-anchor="middle" font-size="11" font-weight="600" font-family="ui-monospace, Consolas, monospace">SessionStart /</text>
+  <text x="115" y="498" text-anchor="middle" font-size="11" font-weight="600" font-family="ui-monospace, Consolas, monospace">SubagentStart hook</text>
+
+  <path d="M210,484 L256,484" stroke="#B4632B" stroke-width="1.8" fill="none" marker-end="url(#arrAmber)"/>
+  <text x="233" y="476" text-anchor="middle" font-size="11" fill="#B4632B">injects</text>
+
+  <rect x="260" y="456" width="250" height="56" rx="9" fill="#F5E6D6" stroke="#B4632B" stroke-width="1.6"/>
+  <text x="385" y="479" text-anchor="middle" font-size="11" font-family="ui-monospace, Consolas, monospace">BOOT.md + ultimate_rules.md</text>
+  <text x="385" y="497" text-anchor="middle" font-size="11" font-family="ui-monospace, Consolas, monospace">+ task file, ≈8K tokens</text>
+
+  <g stroke="#B4632B" stroke-width="1.6" fill="none" marker-end="url(#arrAmber)">
+    <path d="M510,476 L556,468"/>
+    <path d="M510,492 L556,500"/>
+  </g>
+  <rect x="560" y="456" width="180" height="24" rx="7" fill="#FFFFFF" stroke="#C9D2DC"/>
+  <text x="650" y="472" text-anchor="middle" font-size="11">every session start</text>
+  <rect x="560" y="488" width="180" height="24" rx="7" fill="#FFFFFF" stroke="#C9D2DC"/>
+  <text x="650" y="504" text-anchor="middle" font-size="11">every subagent spawn</text>
+</svg>

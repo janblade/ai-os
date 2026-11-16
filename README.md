@@ -1,6 +1,6 @@
 # MaiKS
 
-MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
+MaiKS is a microkernel-inspired governance layer that runs inside your project workspace. It applies rules, a pre-write security check, and persistent memory to AI coding agents (Claude Code, Codex, Antigravity/Gemini, GitHub Copilot, Cursor, Windsurf) working in your codebase.
 
 > **Deterministic, Git-Native Memory**
 > Instead of a vector database (RAG), MaiKS stores memory as plain Markdown and JSON files alongside your code, organized as a Hub (global project knowledge) and Spokes (per-branch task notes). When someone clones the repo, their AI reads the same project knowledge, decision history, and custom skills — no external database required.
@@ -12,8 +12,8 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 *   **Microkernel Structure**: Separation between kernel space (rules, configuration) and user space (skills, memory, commands).
 *   **PDCA Self-Evolution**: A Plan-Do-Check-Act lifecycle. If the AI finds a more efficient pattern, it can propose and apply upgrades to its own workflows and skills, with rollback if integrity checks fail.
 *   **Flexible Agent Delegation**: The primary agent acts as a coordinator that can edit code directly, or delegate complex, multi-file work to specialized subagents if the host environment supports it.
-*   **Automatic Peer Review**: A single agent grading its own work has a structural blind spot. An independent review pass — a separate reviewer subagent where the host supports it, an honestly-labeled cold self-review where it doesn't — now runs by default: once per plan (or per epic story) when working a `PLAN_WRITE` plan, and on a plan-less "implement this feature" request routed there from the boot core. The pass checks five things — correctness, conventions, security, test coverage, and **ownership fit** ("would the owner of this repo merge this diff as-is, or is it in the wrong place / at the wrong abstraction / under-designed even though it works?"). Findings surface to you; it's a second opinion, not a merge gate.
-*   **Pre-Mutation Security Checklist**: A security review runs before any code is written to disk, checking for hardcoded credentials, injection patterns, and unsafe functions. This isn't a substitute for a dedicated SAST tool (Semgrep, Snyk, etc.) in CI.
+*   **Automatic Peer Review**: A single agent grading its own work has a structural blind spot. An independent review pass — a separate reviewer subagent where the host supports it, an honestly-labeled cold self-review where it doesn't — runs by default: once per plan (or per epic story) when working a `PLAN_WRITE` plan, and on a plan-less "implement this feature" request routed there from the boot core. The pass checks five things — correctness, conventions, security, test coverage, and **ownership fit** ("would the owner of this repo merge this diff as-is, or is it in the wrong place / at the wrong abstraction / under-designed even though it works?"). Findings surface to you; it's a second opinion, not a merge gate.
+*   **Pre-Mutation Security Checklist**: Before writing code, the agent runs a security checklist for hardcoded credentials, injection patterns, and unsafe functions. Like the banner below, this is an instruction the agent follows, not a host-enforced hook, and it isn't a substitute for a dedicated SAST tool (Semgrep, Snyk, etc.) in CI.
 *   **Self-Healing**: Loop detection breaks out of repeated-failure cycles. When the AI fixes a non-trivial issue, it prompts you to extract the fix into a permanent playbook so the same error doesn't need re-diagnosing next time.
 *   **Skill-Invocation Visibility**: Before running any command procedure — including one it matched silently from plain English — the agent prints a one-line banner (`▸ AI-OS · core.planning.sk · PLAN_BRAINSTORM`), so you can see when a framework skill is actually being used and `grep` a transcript for the full list. This is an agent self-report convention carried in the boot core, not a host-enforced hook.
 *   **Perception & Stack Discovery**: Can profile your workspace (via `OS_COMMAND INFRA_DISCOVER_MODULES`) to detect tech stack drift, map sub-modules, and generate new semantic rules or custom skills based on what it finds.
@@ -30,9 +30,9 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 
 **"Won't reading the entire framework on every boot cost a fortune in tokens?"**
 
-It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,500 tokens at v2.9.2) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
+It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,500 tokens at v2.9.2) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file (on a fresh install, where the archetype is still `auto`, the archetype index first), a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
 
-Net effect: boot costs roughly **6,000–6,500 tokens** at v2.9.2 (characters ÷ 4; the task file's size is the one variable component), and that figure does not grow with the skills and full rule text, since those live in files that are opt-in by trigger, not opt-out by size. It does grow when `BOOT.md` itself grows, so the number is measured rather than remembered: `python .ai-os/scripts/context_footprint.py` prints the current figures for your project, and the framework's own development tests hold a ceiling on the always-loaded governance text. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
+Net effect: boot costs roughly **5,500–6,500 tokens** at v2.9.2 (characters ÷ 4; the task file's size is the one variable component), and that figure does not grow with the skills and full rule text, since those live in files that are opt-in by trigger, not opt-out by size. It does grow when `BOOT.md` itself grows, so the number is measured rather than remembered: `python .ai-os/scripts/context_footprint.py` prints the current figures for your project, and the framework's own development tests hold a ceiling on the always-loaded governance text. Provider-side prompt caching, which most hosted models offer, still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
 
 **Exception — the Claude Code hook path.** That figure is the lazy-read path every host follows. On Claude Code the installed `SessionStart`/`SubagentStart` hook injects the full text of `BOOT.md` *and* `rules/ultimate_rules.md` unconditionally (about 31 KB combined at v2.9.2, so roughly **7,500–8,000 tokens** by the same characters-÷-4 estimate — a heuristic, not a tokenizer count), plus the task file. It does this again for **every dispatched subagent**, because subagents inherit none of the parent's context. That is the price of governance being present without relying on the agent to re-read it; if it matters more than that guarantee for your project, remove the `SubagentStart` entry from `.claude/settings.json`.
 
@@ -45,114 +45,19 @@ Net effect: boot costs roughly **6,000–6,500 tokens** at v2.9.2 (characters ÷
 
 ## System Structure
 
-```mermaid
-graph TB
-    %% Styling Definitions
-    classDef bridge fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
-    classDef kernel fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#fff;
-    classDef governance fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff;
-    classDef userspace fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
-    classDef database fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff;
-    classDef gate fill:#ec4899,stroke:#be185d,stroke-width:2px,color:#fff;
+Kernel space (`BOOT.md`, `manifest.json`, `kernel/`, `rules/`, `genome/archetypes/`) is read-only for the agent unless your message contains the literal phrase `KERNEL OVERRIDE AUTHORIZED`; on Claude Code the host also asks you before such an edit. User space (skills, commands, memory) is where the framework changes itself, through proposals recorded in `progress.md`.
 
-    %% Entry Bridges
-    subgraph MultiAgentBridges ["Multi-Agent Entry Bridges (each carries a self-sufficient fallback contract)"]
-        direction LR
-        AG["AGENTS.md (Root, cross-tool)"]:::bridge
-        CL["CLAUDE.md (Claude Code)"]:::bridge
-        CO[".github/copilot-instructions.md"]:::bridge
-        CU[".cursor/rules/ai-os.mdc"]:::bridge
-        WI[".windsurfrules"]:::bridge
-    end
+### What a session loads, and when
 
-    %% Kernel Space
-    subgraph KernelSpace ["KERNEL SPACE - Immutable by convention (R3; self-restraint, not a technical control)"]
-        BOOT["BOOT.md<br>(Hot-core Boot Prompt, ~4.5K tokens)"]:::kernel
-        MANIFEST["manifest.json<br>(System Configurations)"]:::kernel
-        INTEGRITY["kernel/integrity.md<br>(Structural Self-Checks, no checksum)"]:::kernel
-        BOOTSTRAP["kernel/bootstrap.md<br>(First-Boot Wizard, loaded once ever)"]:::kernel
-        
-        subgraph GovernanceRules ["Governance Rules (loaded on-demand, not at boot)"]
-            RULES["ultimate_rules.md<br>(Governance Rules)"]:::governance
-            SECPOL["security_policy.md<br>(OWASP GenAI Defenses)"]:::governance
-            EVOPOL["evolution_policy.md<br>(Self-Update Constraints)"]:::governance
-        end
-    end
+<img src="docs/context-loading.svg" alt="What a session loads. The host reads a bridge file, which points to BOOT.md. BOOT.md reads five small files every session, about 5,500 to 6,500 tokens. Four larger sources load only when triggered: the full rules on a rule conflict or security decision, a skill's SKILL.md and the command catalog when a command runs, and the first-boot wizard once ever. On Claude Code only, a SessionStart and SubagentStart hook also injects BOOT.md, ultimate_rules.md and the task file verbatim, about 8,000 tokens, at every session start and every subagent spawn." width="100%">
 
-    %% Perception Layer
-    subgraph PerceptionLayer ["Perception Layer"]
-        GENOME["project_genome.json<br>(Stack DNA File)"]:::database
-        ARCHETYPES["archetypes/*.json<br>(Hobby / Startup / Enterprise / Critical)"]:::database
-    end
+*The boot read stays the same size as skills and rules are added; only the hook path on Claude Code repeats its cost for every subagent.*
 
-    %% User Space
-    subgraph UserSpace ["USER SPACE - Agent-Evolvable"]
-        direction TB
-        
-        subgraph MemorySystem ["Memory System - Structured Files"]
-            EPISODIC["Episodic Memory<br>(decisions.jsonl + sessions.jsonl<br>+ last_session.json, decisions.archive.jsonl)"]:::database
-            SEMANTIC["Semantic (Hub)<br>(project_knowledge.md index<br>+ knowledge/*.md sub-files)"]:::database
-            TASK["Task (Spokes)<br>(tasks/ + archived_tasks/ + plans/,<br>orphan-swept & pruned)"]:::database
-            PROCEDURAL["Procedural Memory<br>(workflows.json + playbooks.md)"]:::database
-        end
+### How a note becomes project knowledge
 
-        subgraph CoreSkills ["Core Skills - Registry"]
-            SEC_SK["security.sk<br>(Audit Gates)"]:::userspace
-            INF_SK["infra.sk<br>(Scaffold & CI/CD)"]:::userspace
-            TST_SK["testing.sk<br>(Validation Run)"]:::userspace
-            EVO_SK["evolution.sk<br>(PDCA Lifecycle)"]:::userspace
-            OBS_SK["observability.sk<br>(Audit Logs)"]:::userspace
-            CTX_SK["context-engine.sk<br>(Relevance & Selection)"]:::userspace
-            MEM_SK["memory.sk<br>(Verify + Accept-Gate Promotion)"]:::userspace
-            HEAL_SK["self-healing.sk<br>(Loop Detection & Repair)"]:::userspace
-            ARC_SK["architect.sk<br>(Greenfield Plan)"]:::userspace
-            PLAN_SK["planning.sk<br>(In-Project Brainstorm/Plan/Execute)"]:::userspace
-            DEVLOOP_SK["dev-loop.sk<br>(Implement + Peer Review)"]:::userspace
-            SIMP_SK["simplicity.sk<br>(Ladder + Over-Engineering Review)"]:::userspace
-        end
+<img src="docs/memory-promotion.svg" alt="How a note becomes project knowledge. Working notes go into the branch's task file unchecked. On TASK_CLOSE or MEMORY_CONSOLIDATE each candidate fact passes two gates: is it still true in the code now, and was the change it describes actually accepted, with owner sign-off on startup archetypes and above. A fact that fails either gate stays in the task file. A fact that passes both is written to knowledge/*.md, which every later session trusts without re-checking. An entry later found wrong goes through MEMORY_AMEND and the same gate." width="100%">
 
-        subgraph Interface ["Interface"]
-            CMD_REG["commands/index.json<br>(Command Catalog)"]:::userspace
-            ALIASES["commands/aliases.json<br>(User Shortcuts)"]:::userspace
-            SHELL["progress.md<br>(Living Dashboard)"]:::userspace
-        end
-    end
-
-    %% Boot Redirection Flow
-    AG & CL & CO & CU & WI -->|Redirect / Load| BOOT
-
-    %% Initialization Sequence (~6-6.5K tokens, 6 small files — see Token Economics)
-    BOOT -->|1. Skim Rules Digest, inline| GENOME
-    ARCHETYPES -->|Calibrate one archetype| GENOME
-    GENOME -->|2. Read last_session.json only - single-file lookup| EPISODIC
-    GENOME -->|3. Task branch? load/create tasks/*.md| TASK
-    BOOT -.->|On-demand: conflict, security decision, or evolution| GovernanceRules
-    BOOT -.->|On-demand: something looks broken| INTEGRITY
-    BOOT -.->|First boot only, once ever| BOOTSTRAP
-    BOOT -.->|On-demand: command invoked| CMD_REG
-
-    %% Runtime Invocation Loop
-    input([User Command / Natural Language Input]) --> ALIASES
-    ALIASES -->|Resolve, or match closest command silently| CMD_REG
-    CMD_REG -->|Route Execution| SEC_SK
-    
-    SEC_SK -->|Pre-mutation Security Gate| ScanGate{"Security Scan Gate"}:::gate
-    ScanGate -->|Fail| BlockResponse["Block Write & Report Incident"]
-    ScanGate -->|Pass| TargetSkill["Target Execution Skill"]
-
-    %% Action Loop Details
-    TargetSkill -->|Perform Action| Action(["Write Code / Run Tool / Modify Workspace"])
-    Action -->|Verify & Trace| OBS_SK
-    OBS_SK -->|Commit Decision| EPISODIC
-    OBS_SK -->|Record Success| PROCEDURAL
-    TASK -->|TASK_CLOSE / MEMORY_CONSOLIDATE| MEM_SK
-    MEM_SK -->|Verify facts + accept-gate R15/R21, then promote| SEMANTIC
-    
-    %% Resilience
-    HEAL_SK -.->|Detect loops & run checklists| TargetSkill
-    EVO_SK -.->|Propose & verify self-updates| CoreSkills
-    CTX_SK -.->|Score relevance for what to read| TargetSkill
-```
+*Both gates exist because a true description of a change that was later reverted is still a bad thing to remember as "how it works".*
 
 ---
 
@@ -185,7 +90,7 @@ your-project/
 │   ├── manifest.json                # Project config & metadata
 │   ├── progress.md                  # Living dashboard & status tracker
 │   ├── kernel/                      # System self-verification checks
-│   ├── rules/                       # ISO 42001 rules & OWASP safety policy
+│   ├── rules/                       # Governance rules, security & evolution policy
 │   ├── commands/                    # User aliases and command catalog
 │   ├── genome/                      # Detected stack DNA & Archetypes
 │   ├── memory/                      
@@ -198,6 +103,7 @@ your-project/
 │   │   ├── archived_tasks/          # History of closed tasks (pruned, not unbounded)
 │   │   └── plans/                   # Dated approved plans (PLAN_WRITE / ARCHITECT_PLAN)
 │   ├── agents/                      # Custom specialized agent profiles
+│   ├── scripts/                     # task_identity.py, session hooks, context_footprint.py
 │   └── registry/                    # Skill catalogs (.sk/), incl. core.memory.sk
 │
 ├── .gitignore                       # (Updated by installer to ignore OS noise)
@@ -205,7 +111,8 @@ your-project/
 │
 ├── AGENTS.md                        # Root bridge — universal fallback, always added
 └── [Host-Specific Bridge File]      # (Merged by the installer)
-    ├── CLAUDE.md                    # ...if using Claude Code
+    ├── CLAUDE.md                    # ...if using Claude Code, plus .claude/settings.json
+    │                                #    (hooks, kernel-edit prompts) and .claude/skills/ai-os-*/
     ├── .windsurfrules               # ...if using Windsurf
     ├── .cursor/rules/ai-os.mdc      # ...if using Cursor (alwaysApply: true frontmatter)
     ├── .github/copilot-instructions.md # ...if using GitHub Copilot
@@ -215,8 +122,8 @@ your-project/
 ### Upgrading
 **WARNING**: Do **not** overwrite your existing `.ai-os/` folder manually — doing so will wipe out your AI's memory.
 
-1. Download the new version of MaiKS and place the unzipped folder in your workspace (e.g., `./maiks-update`).
-2. Open your AI chat and type: **"Please update my AI OS using the instructions in `./maiks-update/.ai-os-installer/UPDATE_PROMPT.md`"**
+1. Download the new version of MaiKS anywhere on your machine, as for a first install.
+2. Open your AI chat and type: **"Please update my AI OS using the instructions in `<path-to-new-package>/.ai-os-installer/UPDATE_PROMPT.md`"**
 3. The agent acts as a safe updater: it copies the new kernel, rules, and skills, while guarding your `memory/` folder so it isn't overwritten, and merges any new settings into your `manifest.json`.
 
 ---
@@ -226,7 +133,7 @@ your-project/
 How to get the most out of MaiKS in your daily development:
 
 1. **The Boot**: While the bridge files naturally instruct the agent to read `.ai-os/BOOT.md` in the background, LLMs don't always act until spoken to. Begin your first chat of the day with: **`> OS_COMMAND BOOT`** to ensure a verified load of your project's memory.
-2. **Branch Auto-Detection (Zero Setup)**: Start a new ticket by checking out a branch (e.g., `git checkout -b feature/JIRA-123`). The OS will automatically detect this branch and create a dedicated, isolated task memory file (`tasks/feature_JIRA-123.md`). It will use this file to log deep technical debugging steps so your main project memory isn't polluted — and it'll do the same even if you work directly on `main`/`release` (solo projects, hotfixes, trunk-based workflows). There's no branch where working notes are allowed to skip straight to permanent project memory unverified; on those protected branches the task file is just *rolling* — periodically drained into `project_knowledge.md` by `MEMORY_CONSOLIDATE` instead of closed all at once by `TASK_CLOSE`. Not in a git repo, or in a detached `HEAD` state with no branch to key off? The OS won't skip task memory or invent a name for you — it checks for an already-open task first, and if it can't find one, it just asks what you're working on before creating the file.
+2. **Branch Auto-Detection (Zero Setup)**: Start a new ticket by checking out a branch (e.g., `git checkout -b feature/JIRA-123`). The OS will automatically detect this branch and create a dedicated, isolated task memory file in `.ai-os/memory/tasks/`, named from a readable slug plus a SHA-256 of the exact branch name (`task-feature_JIRA-123-81ef6e….md`), so `feature/a_b` and `feature_a/b` never share one. It will use this file to log deep technical debugging steps so your main project memory isn't polluted — and it'll do the same even if you work directly on `main`/`release` (solo projects, hotfixes, trunk-based workflows). There's no branch where working notes are allowed to skip straight to permanent project memory unverified; on those protected branches the task file is just *rolling* — periodically drained into `project_knowledge.md` by `MEMORY_CONSOLIDATE` instead of closed all at once by `TASK_CLOSE`. Not in a git repo, or in a detached `HEAD` state with no branch to key off? The OS won't skip task memory or invent a name for you — it checks for an already-open task first, and if it can't find one, it just asks what you're working on before creating the file.
 3. **Daily Development**: Code normally! You don't need to micromanage the OS. Just ask your agent to build features, fix bugs, or write tests. The OS's security and design rules govern it silently as it works.
 4. **Complex Planning**: If you have a big structural change, don't just tell the agent to code. Which command depends on where you're starting from — the two don't overlap. Starting a whole new idea with no project yet? Type `> OS_COMMAND plan`; the `Architect` skill runs a structured interview through project scaffolding. Already inside this project and planning a feature or fix? Type `> OS_COMMAND feature` (`PLAN_BRAINSTORM`) instead; it clarifies scope through a few rounds of questions, writes a concrete step-by-step plan, then executes it with verification at each step.
 5. **Task Completion & Consolidation**: When you finish your feature and are ready to open a Pull Request, tell the agent: **`> OS_COMMAND TASK_CLOSE`** (or just say "summarize and close this task"). The AI reads your task memory, checks each candidate fact two ways — is it still factually accurate, and was the underlying change actually accepted rather than still buggy or awaiting your sign-off — before saving anything to the `semantic/` hub, then archives the task file. Nothing gets promoted to permanent memory just because it was written down.
@@ -239,26 +146,26 @@ MaiKS stores all of its memory, skills, and governance as plain-text Markdown an
 
 - **To Backup**: Commit the `.ai-os/` directory to your project's Git repository.
 - **Merge Conflicts?**:
-  - *Append-only Logs (`decisions.jsonl`)*: Git auto-merges append-only logs well.
+  - *Append-only Logs (`decisions.jsonl`)*: two branches that both append to it conflict at the end of the file. Every line is a self-contained JSON entry, so the fix is to keep both sides' lines. Adding `.ai-os/memory/episodic/decisions.jsonl merge=union` to your `.gitattributes` makes Git do that automatically.
   - *Semantic Memory (`knowledge/*.md`, indexed by `project_knowledge.md`)*: institutional knowledge is split into topic files to keep concurrent branches from touching the same file. Before deleting something as superseded, it checks Git history first — if another branch added that entry after your branch forked, it flags the conflict instead of silently dropping it on merge. A conflict reaching you is a signal something needs a human look, not intended behavior.
-  - *Noisy Files*: The installer adds per-machine files (`sessions.jsonl`, `last_session.json`, and `progress.md`) to your `.gitignore` to reduce merge conflicts — `decisions.jsonl` itself stays tracked, since it's the shared audit trail.
+  - *Noisy Files*: The installer adds per-machine files (`sessions.jsonl`, `last_session.json`, `session_override.json`, and `progress.md`) to your `.gitignore` to reduce merge conflicts — `decisions.jsonl` itself stays tracked, since it's the shared audit trail.
 - **To Restore**: When you clone your repo on a new machine (or a teammate clones it), the host AI agent reads the same episodic memories, structural rules, and custom skills. No external database to sync.
 
 ---
 
 ## Command Reference
 
-MaiKS commands can be invoked with **natural language** — you don't need exact command syntax; the AI matches your request to the closest command. Every command — built-in or skill-owned — runs through the same invocation pipeline:
+MaiKS commands can be invoked with **natural language** — you don't need exact command syntax; the AI matches your request to the closest command. The tables below list the commands you'll use most; `HELP` or `.ai-os/commands/index.json` has all of them. Every command — built-in or skill-owned — runs through the same invocation pipeline:
 
-<img src="docs/command-invocation-flow.svg" alt="Command invocation flow: a typed OS_COMMAND, an alias, or a natural-language match all resolve against commands/index.json, branch into a built-in procedure (kernel space) or a skill command that loads its registry SKILL.md (user space), both emit the ANNOUNCE ON INVOCATION banner, execute (with an optional sub-dispatch to a subagent review, RELEASE, or a chained command), get verified, then either log a decision and write memory on pass or roll back on fail, ending in a report to the user." width="100%">
+<img src="docs/command-invocation-flow.svg" alt="Command invocation flow. A command arrives typed as OS_COMMAND, through an alias, or as a plain-English request matched to the closest command; all three resolve against commands/index.json. A built-in runs its procedure from BOOT.md; any other command loads its registry SKILL.md. Both print the one-line AI-OS banner, then run the procedure, optionally calling a reviewer subagent or a chained command. The result is verified: on pass a significant decision is logged and memory is written through its gate; on fail the result is reported as not verified, and an evolution is rolled back. Both end in a report to the user." width="100%">
 
-*Blue = built-in (kernel space) · amber = skill command (loads a `registry/*/SKILL.md`) · green = verified/pass · red = failed/rolled back · dashed = optional hop, not every command takes it.*
+*Blue = built-in · amber = skill command (loads a `registry/*/SKILL.md`) · green = verified · red = not verified · dashed = optional, not every command takes it.*
 
 ### Core System
 | Command | Alias | Description | Example Prompt |
 |---|---|---|---|
 | `STATUS` | `status` | Show system health and memory stats | *"Can you check the OS status?"* |
-| `HELP` | | View all available pragmatic commands | *"What commands can you run?"* |
+| `HELP` | | List every available command | *"What commands can you run?"* |
 
 ### Security & Healing
 | Command | Alias | Description | Example Prompt |
@@ -272,7 +179,12 @@ MaiKS commands can be invoked with **natural language** — you don't need exact
 ### Planning & Infrastructure
 | Command | Alias | Description | Example Prompt |
 |---|---|---|---|
-| `ARCHITECT_PLAN` | `plan` | Interactive interview to plan a feature | *"Let's plan a new user dashboard feature"* |
+| `ARCHITECT_PLAN` | `plan` | Greenfield only: interview an idea into an architecture plan and scaffold | *"I have an idea for a recipe app and nothing is built yet"* |
+| `PLAN_BRAINSTORM` | `feature` | Clarify a feature or change inside this project before planning it | *"Let's plan a new user dashboard feature"* |
+| `PLAN_WRITE` | | Write a step-by-step plan to `memory/plans/` | *"Write up the plan for the export feature"* |
+| `PLAN_EXECUTE` | | Work an approved plan, with a review pass at the end | *"Execute the approved plan"* |
+| `DEV_IMPLEMENT_REVIEWED` | | Implement a small task without a plan, then an independent review | *"Add a /health endpoint"* |
+| `SIMPLIFY_REVIEW` | `simplify` | Review a diff for over-engineering only | *"Is this diff more complex than it needs to be?"* |
 | `INFRA_DISCOVER_MODULES` | `discover` | Profile codebase to detect stack drift | *"Profile the codebase, I just added Next.js"* |
 | `INFRA_SCAFFOLD` | | Generate boilerplate project structure | *"Scaffold the project structure for me"* |
 | `INFRA_ANALYZE_COMMITS` | `absorb_history` | Seed semantic memory from recent PR-merge history | *"Absorb our commit history into project memory"* |
