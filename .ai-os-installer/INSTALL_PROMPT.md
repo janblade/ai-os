@@ -88,7 +88,9 @@ Read the template. Then, **append** its exact text to the bottom of the user's e
     `pointer_description`, falling back to its `description` when absent (custom skills);
     fill `{commands}` with its `commands` followed by its `backs_builtin_commands`, if any
     (EP-88 — the skill behind `TASK_CLOSE` must advertise `TASK_CLOSE`). Keep the whole
-    description under 1024 characters. The host decides from this text alone whether to
+    description under 1024 characters, on the one line the template indents under
+    `description: >-` (EP-94): that block form is what keeps the `: ` in `Commands: ` and in
+    the descriptions themselves valid YAML — never move it back onto the `description:` line. The host decides from this text alone whether to
     load the skill, so it has to name the situations that call for it, not just what the
     skill is and `{id}` with the unmodified skill id. These
     are pointers, not copies — the body only tells the agent to read the registry `SKILL.md`,

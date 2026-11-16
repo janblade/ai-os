@@ -1,6 +1,7 @@
 ---
 name: ai-os-{slug}
-description: {pointer_description} Commands: {commands}.
+description: >-
+  {pointer_description} Commands: {commands}.
 ---
 
 <!-- ai-os-pointer: generated from .ai-os/registry/index.json — do not edit, regenerated on update -->

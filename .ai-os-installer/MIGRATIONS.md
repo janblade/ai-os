@@ -13,6 +13,22 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.9.2 (cont'd 2) — Valid YAML in skill pointers, pointer routing hint
+
+From an `EVOLVE_BENCHMARK` against `NVIDIA/SkillEvaluator`. Additive; no version bump.
+
+- **Skill-pointer frontmatter is valid YAML** (EP-94): `templates/skill-pointer.md` writes
+  the description as a folded block scalar (`description: >-`, text indented on the next
+  line). The old one-line form put `: ` (from `Commands: `) inside an unquoted value, which a
+  YAML parser rejects. **Migration action:** none beyond `UPDATE_PROMPT.md` Step 5 item 3 —
+  every pointer's content now differs, so each marker-carrying `ai-os-*` pointer is
+  regenerated; user-owned skill directories stay untouched.
+- **Dev-loop pointer routing hint** (EP-95): `core.dev-loop.sk`'s `pointer_description` adds
+  "Not when an approved plan exists: that is PLAN_EXECUTE." (`BOOT.md` §4's existing
+  carve-out, now visible to host-native routing). **Migration action:** merge the new
+  `pointer_description` into the user's `registry/index.json` for that core skill if theirs
+  is unchanged from the previous stock text; the pointer then regenerates (Step 5 item 3).
+
 ## v2.9.2 (cont'd) — Environment facts, loop-detection signals, context footprint report
 
 From an `EVOLVE_BENCHMARK` against `microsoft/TokenEconomizer`. Additive; no version bump.

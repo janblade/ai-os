@@ -217,7 +217,7 @@
       "name": "Dev Loop - Implementation with Peer Review",
       "version": "1.0.0",
       "description": "Implementation with independent peer review when the host supports subagent dispatch; honestly-labeled same-agent fallback when it doesn't.",
-      "pointer_description": "Use when implementing a feature or fix that should get an independent review, especially small work without a plan.",
+      "pointer_description": "Use when implementing a feature or fix that should get an independent review, especially small work without a plan. Not when an approved plan exists: that is PLAN_EXECUTE.",
       "entrypoint": "registry/core.dev-loop.sk/SKILL.md",
       "commands": [
         "DEV_IMPLEMENT_REVIEWED"
