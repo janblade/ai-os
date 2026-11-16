@@ -209,6 +209,9 @@ applied evolution in this repo — the documented tail of `EVOLVE_APPLY` step 6.
    - a `type: "evolution"` `decisions.jsonl` entry exists for each EP;
    - if an EP changed `.ai-os/` behaviour that `UPDATE_PROMPT.md` propagates, a
      `MIGRATIONS.md` section covers it (the newer-than-or-equal walk, EP-62);
+   - `python -B -m unittest discover -s tests` passes — this includes the context-footprint
+     ceilings (EP-92). A ceiling failure means always-loaded text grew: trim it, or raise
+     the ceiling in the same commit with the reason in the message. Never raise it silently;
    - `manifest.json.evolution_history.last_evolution` = the newest EP being released;
      `total_evolutions` incremented once per APPLIED EP that touched `.ai-os/` payload —
      an installer-doc-only or `README.md`-only EP consumes an EP-ID without bumping the
@@ -255,7 +258,7 @@ via `INSTALL_PROMPT.md` Step 4's existing rules, reused rather than duplicated.
    hand-edit between runs.
 3. **Copy.** Copy this repo's current `.ai-os/`, `.ai-os-installer/`, `README.md`, and
    `docs/` into the scratch clone, overwriting whatever was there before.
-4. **Strip.** Apply `INSTALL_PROMPT.md` Step 4 items 1–11 verbatim to the copied
+4. **Strip.** Apply `INSTALL_PROMPT.md` Step 4 items 1–12 verbatim to the copied
    `.ai-os/` — the exact rules a fresh install already applies (dev-history reset,
    project-only command/playbook/workflow purge). Don't restate those rules here; read
    and apply the file directly so the two can't drift apart.

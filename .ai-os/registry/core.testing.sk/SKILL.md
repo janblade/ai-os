@@ -26,7 +26,9 @@ Execute test suites with structured output.
 
 **Procedure:**
 1. Detect test framework from project genome (Jest, pytest, cargo test, go test, etc.)
-2. Build the appropriate test command:
+2. Build the appropriate test command. The genome's `environment_facts` has an entry for
+   running tests here → use that form; it was learned by running them
+   (`core.infra.sk`, Environment Facts). Otherwise:
    | Framework | Command |
    |---|---|
    | Jest | `npx jest [--testPathPattern=<filter>]` |

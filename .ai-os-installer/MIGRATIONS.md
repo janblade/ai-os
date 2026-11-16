@@ -13,6 +13,30 @@ content shipped under a version number that already exists, which by precedent d
 `ai_os_version` — actually reach the users already on that version. A non-idempotent action
 would corrupt a little more on each pass.
 
+## v2.9.2 (cont'd) — Environment facts, loop-detection signals, context footprint report
+
+From an `EVOLVE_BENCHMARK` against `microsoft/TokenEconomizer`. Additive; no version bump.
+
+- **Environment facts** (EP-90): `genome/project_genome.json` gains `environment_facts`
+  (at most 4 learned invocation facts) and a `_environment_facts` note; the protocol is in
+  `core.infra.sk` (Environment Facts), `INFRA_DETECT_STACK` step 5 preserves the fields, and
+  `TEST_RUN` step 2 consults them. **Migration action:** the updater never copies
+  `project_genome.json`, so ensure the two fields exist in the user's own file — add
+  `"environment_facts": []` if the key is missing (never replace a list that is already
+  there), and add `_environment_facts` with the text from the distributed
+  `project_genome.json` if missing or different. Do not copy the distributed file's
+  `environment_facts` entries; they describe another repository.
+- **Loop-detection signals** (EP-91): `core.self-healing.sk` Loop Detection counts on the
+  failure rather than the fix, adds a churn signal and a progress carve-out; Repair
+  Protocol step 3 opens with a tally. **Migration action:** none beyond the core-skill
+  refresh.
+- **Context footprint report** (EP-92): new read-only `scripts/context_footprint.py`
+  prints what boot reads, what the hook injects per session and per subagent, bridge files
+  and skill-pointer descriptions, in characters and a characters ÷ 4 token estimate, and
+  flags an `environment_facts` list over its cap. `CONTEXT_BUDGET` cites it.
+  **Migration action:** none — Step 3 copies `scripts/`. The ceiling test lives in the
+  framework's own repository, not in installs.
+
 ## v2.9.2 — Issue fixes: precedence, rolling drain, stock refresh, reproduce-first, pointer triggers, TDD slicing
 
 Fixes for public `ai-os` issues #1, #4, #5, #6, #7.

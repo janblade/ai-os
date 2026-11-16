@@ -30,11 +30,16 @@ MaiKS is a microkernel-inspired governance layer that runs inside your project w
 
 **"Won't reading the entire framework on every boot cost a fortune in tokens?"**
 
-It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,000 tokens as measured) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
+It would — so the OS doesn't do that. `BOOT.md` is a small hot core (~4,500 tokens at v2.9.2) that carries a condensed rules digest and *pointers* to the full rules, skill procedures, and command catalog, rather than inlining them. Boot reads six small files — `BOOT.md`, `manifest.json`, `project_genome.json`, your active archetype file, a single-entry session-continuity summary, and the currently-open task memory file (`memory/tasks/*.md` — `BOOT.md` §2 step 4 requires one every session, including on `main`) — and stops there. The full text of `rules/*.md`, `registry/*/SKILL.md`, and `commands/index.json` (tens of KB combined) loads only when a specific situation actually calls for it: a rule conflict, a security-sensitive change, or a command being invoked.
 
-Net effect: boot costs roughly **4,500–5,000 tokens** (the task file's size is the one variable component) regardless of how much governance content the framework has accumulated, since new rules and skills live in files that are opt-in by trigger, not opt-out by size. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
+Net effect: boot costs roughly **6,000–6,500 tokens** at v2.9.2 (characters ÷ 4; the task file's size is the one variable component), and that figure does not grow with the skills and full rule text, since those live in files that are opt-in by trigger, not opt-out by size. It does grow when `BOOT.md` itself grows, so the number is measured rather than remembered: `python .ai-os/scripts/context_footprint.py` prints the current figures for your project, and the framework's own development tests hold a ceiling on the always-loaded governance text. Provider-side context caching (Claude, Gemini, GPT-4o, etc.) still helps on top of this for the parts that are read repeatedly, but it's a bonus, not the mechanism the design relies on.
 
 **Exception — the Claude Code hook path.** That figure is the lazy-read path every host follows. On Claude Code the installed `SessionStart`/`SubagentStart` hook injects the full text of `BOOT.md` *and* `rules/ultimate_rules.md` unconditionally (about 31 KB combined at v2.9.2, so roughly **7,500–8,000 tokens** by the same characters-÷-4 estimate — a heuristic, not a tokenizer count), plus the task file. It does this again for **every dispatched subagent**, because subagents inherit none of the parent's context. That is the price of governance being present without relying on the agent to re-read it; if it matters more than that guarantee for your project, remove the `SubagentStart` entry from `.claude/settings.json`.
+
+**Runtime cost control is a different layer.** Everything above is about what this framework itself adds to context. What a session spends *while working* — tool definitions re-sent on every request, turns stuck in a failure loop — is controlled at the host's hook level, which this framework does not implement. [TokenEconomizer](https://github.com/microsoft/TokenEconomizer) (Microsoft Research / UC Berkeley, Apache-2.0) does: it prunes tools a repository never uses and has a judged loop guard, and reports 18–31% lower mean cost on SWE-Bench tasks in its own paper. The two can be installed side by side. What follows was read from its source (commit `a345a9d`, 2026-11-15) and **has not been tested together with this framework**:
+- On Claude Code its pruning never removes `Agent`, `Task`, `Skill`, `AskUserQuestion` or `ToolSearch`, so subagent review (`core.dev-loop.sk`) and the native skill pointers are not affected.
+- On Codex it can switch off the `collaboration` capability package after enough sessions in which it went unused. That would drop the Review Pass to its same-agent fallback without saying so. Set `toolprune_protect=collaboration` in its config to prevent that.
+- Both inject context at session start; the injections add up, they do not replace each other.
 
 ---
 
@@ -62,7 +67,7 @@ graph TB
 
     %% Kernel Space
     subgraph KernelSpace ["KERNEL SPACE - Immutable by convention (R3; self-restraint, not a technical control)"]
-        BOOT["BOOT.md<br>(Hot-core Boot Prompt, ~4K tokens)"]:::kernel
+        BOOT["BOOT.md<br>(Hot-core Boot Prompt, ~4.5K tokens)"]:::kernel
         MANIFEST["manifest.json<br>(System Configurations)"]:::kernel
         INTEGRITY["kernel/integrity.md<br>(Structural Self-Checks, no checksum)"]:::kernel
         BOOTSTRAP["kernel/bootstrap.md<br>(First-Boot Wizard, loaded once ever)"]:::kernel
@@ -116,7 +121,7 @@ graph TB
     %% Boot Redirection Flow
     AG & CL & CO & CU & WI -->|Redirect / Load| BOOT
 
-    %% Initialization Sequence (~4.5-5K tokens, 6 small files — see Token Economics)
+    %% Initialization Sequence (~6-6.5K tokens, 6 small files — see Token Economics)
     BOOT -->|1. Skim Rules Digest, inline| GENOME
     ARCHETYPES -->|Calibrate one archetype| GENOME
     GENOME -->|2. Read last_session.json only - single-file lookup| EPISODIC

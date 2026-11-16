@@ -284,8 +284,18 @@ phase 5. Phase 1 is never skipped when the cause isn't already known.
 
 ## Loop Detection
 
-If you find yourself attempting the same fix 3 times and receiving the same error, **STOP**.
-Do not blindly retry a 4th time. Escalate to the user and ask for guidance or alternative approaches.
+The same failure 3 times → **STOP** (`BOOT.md` §7). Do not retry a 4th time. Escalate to
+the user with what was tried and ask for guidance or alternative approaches.
+
+What counts as "the same failure" (EP-91):
+- **Same failure, any fix.** Three *different* fixes that each end in the same error, the
+  same failing test, or the same failing command are one loop. The count is on the
+  failure, not on the fix.
+- **Churn.** Repeated edits to the same file(s) while the failing check's output stays
+  unchanged count toward the same loop, whatever each edit was.
+- **Progress is not a loop.** The failure's signature changed — a different error, a
+  different test, the same test failing further along — → that is progress; the count
+  restarts. A hard problem that keeps moving is left alone.
 
 ## Repair Protocol
 
@@ -296,8 +306,12 @@ When you encounter a persistent failure:
    `HEAL_DIAGNOSE` invocation). Match → follow its `### Steps`, tell the user which
    playbook matched, skip the rest of this protocol. No match → continue.
 2. Stop the current action chain.
-3. Formulate a new hypothesis. If the local fix isn't working, consider if the root cause is in a different file or dependency.
-4. Use your file reading tools (`view_file`, `grep_search`) to gather broader context.
+3. **Tally, then a new hypothesis.** State plainly what the loop consisted of: how many
+   edits went to which file(s), how many verification runs, how many times the same
+   failure recurred. Then re-read what the failing check actually expects, and consider a
+   different file, dependency, or root cause than the ones edited so far. Verify the new
+   hypothesis directly before editing again.
+4. Use your file-reading and search tools to gather broader context.
 5. Attempt an alternative strategy.
 6. **If the repair is successful**, ask the user: *"I have successfully repaired the
    issue. Would you like me to document this fix in `playbooks.md` so `HEAL_DIAGNOSE` can

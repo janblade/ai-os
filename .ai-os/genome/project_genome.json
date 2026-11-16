@@ -27,5 +27,7 @@
     "git_initialized": false,
     "estimated_contributors": 0
   },
+  "environment_facts": [],
+  "_environment_facts": "Invocation facts learned by running things. Capped (count and size: core.infra.sk, Caps). Try a recorded form first. A command form fails environmentally and another form of the same intent then works -> record it. A recorded form fails -> fix or delete its entry. Never a reason to skip a check. Procedure: registry/core.infra.sk/SKILL.md, Environment Facts.",
   "notes": "Not yet scanned — run INFRA_DETECT_STACK."
 }

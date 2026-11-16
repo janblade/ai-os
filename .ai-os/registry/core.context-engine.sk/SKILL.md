@@ -97,7 +97,10 @@ Check token budget and recommend what to load or prune.
 
 **Procedure:**
 1. Give a rough, self-reported estimate of what you've loaded so far (this is an estimate,
-   not a metered figure — say so).
+   not a metered figure — say so). The fixed part is measurable — what boot reads, what the
+   hook injects, bridge files, skill pointers: run
+   `python .ai-os/scripts/context_footprint.py` and quote its numbers instead of guessing.
+   Python unavailable → say so and estimate.
 2. If `--estimate-file`: estimate the token cost of loading the specified file (roughly:
    file size in characters / 4).
 3. Recommend action qualitatively: "Looks fine" / "Consider pruning low-relevance items

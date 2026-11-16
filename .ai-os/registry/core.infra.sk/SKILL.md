@@ -29,7 +29,9 @@ Auto-detect the project's tech stack and architecture.
 2. Parse detected config files for framework/library information
 3. Identify architecture pattern (monorepo, single-app, library, API, CLI, etc.)
 4. Assess project maturity indicators (README, license, CI, tests, contributors)
-5. Write results to `genome/project_genome.json`
+5. Write results to `genome/project_genome.json` — keep the existing `environment_facts`
+   and `_environment_facts` fields as they are; a rescan re-detects the stack, it does not
+   discard what running things has taught (Environment Facts, below)
 6. If `--deep`: Also analyze code structure for patterns, entry points, and module boundaries
 
 **Output:** Project genome summary with detected stack, architecture, and maturity.
@@ -312,6 +314,49 @@ Remove a worktree once its branch is merged or abandoned.
    this command's. Removing the worktree only cleans up the filesystem-level isolation.
 
 ---
+
+## Environment Facts
+
+Not a command — an always-on protocol (EP-90). The genome's detected
+fields come from marker files. `environment_facts` holds the other kind of knowledge: how
+this repository is actually driven, learned by running things. `BOOT.md` §2 step 2 reads
+the genome every session, so a recorded fact is in context before the first command and
+the failed attempt is not paid for again.
+
+**Record** when, in this session, a command fails for an environmental reason — command
+not found, missing module, missing variable, wrong invocation, a host that refuses the
+fetch — and a different form of the same intent then succeeds. One entry:
+
+```json
+{"fact": "Run the tests with `python -m pytest`; bare `pytest` is not on PATH.", "kind": "form-repair", "first_seen": "2026-11-16", "last_confirmed": "2026-11-16"}
+```
+
+| `kind` | What it records |
+|---|---|
+| `form-repair` | the spelling of a command that works here, and the one that doesn't |
+| `build-order` | a step that must run before another works |
+| `env-value` | a variable a command needs — its **name** only, never its value (R11) |
+| `boundary` | a host or resource that is always refused here, so don't retry it |
+
+**Use.** A recorded form is the first one to try. It is a starting point, not a result:
+the command still runs and its output is still read.
+
+**Retire.** The recorded form itself fails environmentally → correct or delete the entry
+in the same turn and append one `decisions.jsonl` line. Followed and it worked, on a later
+day → set `last_confirmed` to that date; skip the write when nothing changed.
+
+**Caps.** At most 4 entries and about 600 characters across their `fact` text. Full → the
+entry with the oldest `last_confirmed` makes room. This content is read on every boot;
+the cap is what keeps it cheaper than the failures it prevents.
+
+**What a fact may not say.** How to invoke something and what it needs — nothing else.
+Never when work is complete, which check can be skipped, or that something needs no
+verification; the Verification-Before-Completion Protocol (`core.self-healing.sk`) is not
+shortened by anything stored here. Not facts about the code or its design either — those
+go through `core.memory.sk`'s verify/accept gate into `knowledge/*.md`, not into the genome.
+
+A failure that took real diagnosis belongs in `playbooks.md` (`core.self-healing.sk`
+Repair Protocol step 6), not here. This list is for the one-line kind.
 
 ## Stack-Specific Best Practices
 

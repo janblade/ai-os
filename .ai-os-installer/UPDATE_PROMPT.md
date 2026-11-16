@@ -149,8 +149,10 @@ front rather than one pair at a time, then apply each merge.
 grow large — don't read it in full by default. First grep its `## ` headers (cheap) to find
 the pre-upgrade `ai_os_version` you captured in Step 1; since sections run newest-to-oldest,
 every applicable section (newer-than-or-equal-to, see below) is one contiguous block from the
-top of the file down through — and including — that version's own section. Read only that
-span in full. Fall back to reading the whole file only if the old version's header can't be
+top of the file down through — and including — that version's own section **and every
+`(cont'd)` section of that same version**. Older parts of the file place a version's
+`(cont'd)` sections below its base section, so find them by grepping the headers for the
+version string, not by stopping at the first match. Read only that span in full. Fall back to reading the whole file only if the old version's header can't be
 found (e.g. a version string that predates this file, or the fresh-from-`v1.0.0` case) —
 never guess the boundary. Using the pre-upgrade `ai_os_version` you captured in Step 1:
 1. Walk every version section **newer than or equal to** the user's old version,
